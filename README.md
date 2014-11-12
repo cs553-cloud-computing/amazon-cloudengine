@@ -1,7 +1,7 @@
 Cloud Task Execution Framework
 ==============================
 
-*Falkon/Animoto clone with Amazon EC2, S3, SQS, and DynamoDB*
+*with Amazon EC2, S3, SQS, and DynamoDB*
 
 
 License:
