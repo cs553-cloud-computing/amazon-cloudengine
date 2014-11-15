@@ -1,4 +1,5 @@
-bin/
+cloudclient/bin/
+cloudworker/bin/
 .metadata
 *~
 target/
