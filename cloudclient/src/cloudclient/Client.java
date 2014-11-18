@@ -31,20 +31,20 @@ public class Client {
         }
         
         AmazonSQS sqs = new AmazonSQSClient(credentials);
-        Region usWest2 = Region.getRegion(Regions.US_WEST_2);
-        sqs.setRegion(usWest2);
+        Region usEast1 = Region.getRegion(Regions.US_EAST_1);
+		sqs.setRegion(usEast1);
 
         System.out.println("===========================================");
         System.out.println("Getting Started with Amazon SQS");
         System.out.println("===========================================\n");
        
-        String task_1 = "Sleep 1000"; 
+        String task_1 = "Sleep 2000"; 
         String task_2 = "Sleep 5000";
         try {
             // Create a queue
             System.out.println("Creating a new SQS queue called JobQueue.\n");
             CreateQueueRequest createQueueRequest = new CreateQueueRequest("JobQueue");
-            String myQueueUrl = sqs.createQueue(createQueueRequest).getQueueUrl();
+            String jobQueueUrl = sqs.createQueue(createQueueRequest).getQueueUrl();
 
             // List queues
             System.out.println("Listing all queues in your account.\n");
@@ -55,10 +55,10 @@ public class Client {
             
         	// Send a message
             System.out.println("Sending a message to MyQueue.\n");
-            sqs.sendMessage(new SendMessageRequest(myQueueUrl, task_1));
-            sqs.sendMessage(new SendMessageRequest(myQueueUrl, task_2));
-            sqs.sendMessage(new SendMessageRequest(myQueueUrl, task_1));
-            sqs.sendMessage(new SendMessageRequest(myQueueUrl, task_2));
+            sqs.sendMessage(new SendMessageRequest(jobQueueUrl, task_1));
+            sqs.sendMessage(new SendMessageRequest(jobQueueUrl, task_2));
+            sqs.sendMessage(new SendMessageRequest(jobQueueUrl, task_1));
+            sqs.sendMessage(new SendMessageRequest(jobQueueUrl, task_2));
             
         } catch (AmazonServiceException ase) {
             System.out.println("Caught an AmazonServiceException, which means your request made it " +

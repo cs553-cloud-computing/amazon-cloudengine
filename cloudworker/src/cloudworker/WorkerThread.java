@@ -4,7 +4,7 @@ public class WorkerThread implements Runnable {
 	int task_id;
 	long sleepLength;
 	
-	public WorkerThread(long sleepLength){
+	WorkerThread(long sleepLength){
 		this.sleepLength = sleepLength;
 	}
 	

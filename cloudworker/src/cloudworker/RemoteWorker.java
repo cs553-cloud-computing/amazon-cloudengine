@@ -24,7 +24,7 @@ import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 public class RemoteWorker {
 	
 	public static void main(String[] args) throws Exception {
-		final int N_THREADS = 2;
+		final int poolSize = 4;
 	    /*
          * The ProfileCredentialsProvider will return your [default]
          * credential profile by reading from the credentials file located at
@@ -32,7 +32,7 @@ public class RemoteWorker {
          */
 		
 		//Create thread pool
-		ExecutorService threadPool = Executors.newFixedThreadPool(N_THREADS);
+		ExecutorService threadPool = Executors.newFixedThreadPool(poolSize);
 		
         AWSCredentials credentials = null;
         try {
@@ -46,8 +46,8 @@ public class RemoteWorker {
         }
 
         AmazonSQS sqs = new AmazonSQSClient(credentials);
-        Region usWest2 = Region.getRegion(Regions.US_WEST_2);
-        sqs.setRegion(usWest2);
+        Region usEast1 = Region.getRegion(Regions.US_EAST_1);
+		sqs.setRegion(usEast1);
         
         //Get queue url
         GetQueueUrlResult urlResult = sqs.getQueueUrl("JobQueue");
@@ -65,15 +65,16 @@ public class RemoteWorker {
 	            System.out.println("    MD5OfBody:     " + message.getMD5OfBody());
 	            System.out.println("    Body:          " + message.getBody());
 	          
-	            //Execute task
+	            //Get task
 	            String task = message.getBody();
 	            
 	            String sleepLength = task.replaceAll("[^0-9]", "");
 	            //System.out.println(Long.parseLong(sleepLength));
 	            
-	            threadPool.execute(new WorkerThread(Long.parseLong(sleepLength)));
+	            //Execute task
+	            threadPool.submit(new WorkerThread(Long.parseLong(sleepLength)));
 	            
-	            // Delete a message
+	            // Delete the message
 	            String messageRecieptHandle = message.getReceiptHandle();
 	            sqs.deleteMessage(new DeleteMessageRequest(jobQueueUrl, messageRecieptHandle));
 	            
@@ -82,7 +83,11 @@ public class RemoteWorker {
         System.out.println();
         
         threadPool.shutdown();
-
+     // Wait until all threads are finished
+        while(!threadPool.isTerminated()){
+        	
+        }
+        
 	}
 	
 	public static int getQueueSize(AmazonSQS sqs, String queueUrl){
