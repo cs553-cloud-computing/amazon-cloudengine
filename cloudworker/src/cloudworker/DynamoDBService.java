@@ -16,11 +16,13 @@ import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
 import com.amazonaws.services.dynamodbv2.model.DescribeTableRequest;
 import com.amazonaws.services.dynamodbv2.model.GetItemRequest;
 import com.amazonaws.services.dynamodbv2.model.GetItemResult;
+import com.amazonaws.services.dynamodbv2.model.InternalServerErrorException;
 import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
 import com.amazonaws.services.dynamodbv2.model.KeyType;
 import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
 import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
 import com.amazonaws.services.dynamodbv2.model.PutItemResult;
+import com.amazonaws.services.dynamodbv2.model.ResourceNotFoundException;
 import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
 import com.amazonaws.services.dynamodbv2.model.TableDescription;
 import com.amazonaws.services.dynamodbv2.util.Tables;
@@ -59,14 +61,15 @@ public class DynamoDBService {
             if (Tables.doesTableExist(dynamoDB, TABLE_NAME)) {
                 System.out.println("Table " + TABLE_NAME + " is already ACTIVE");
             } else {
-                // Create a table with a primary hash key named 'name', which holds a string
-                CreateTableRequest createTableRequest = new CreateTableRequest().withTableName(TABLE_NAME)
-                    .withKeySchema(new KeySchemaElement().withAttributeName("ID").withKeyType(KeyType.HASH))
-                    .withAttributeDefinitions(new AttributeDefinition().withAttributeName("ID").withAttributeType(ScalarAttributeType.S))
+                // Create a table with a primary hash key named 'taskID', which holds a string
+                CreateTableRequest createTableRequest = new CreateTableRequest()
+                	.withTableName(TABLE_NAME)
+                    .withKeySchema(new KeySchemaElement().withAttributeName("taskID").withKeyType(KeyType.HASH))
+                    .withAttributeDefinitions(new AttributeDefinition().withAttributeName("taskID").withAttributeType(ScalarAttributeType.S))
                     .withProvisionedThroughput(new ProvisionedThroughput().withReadCapacityUnits(1L).withWriteCapacityUnits(1L));
                     
-                TableDescription createdTableDescription = dynamoDB.createTable(createTableRequest).getTableDescription();
-                System.out.println("Created Table: " + createdTableDescription);
+                TableDescription tableDescription = dynamoDB.createTable(createTableRequest).getTableDescription();
+                System.out.println("Created Table: " + tableDescription);
 
                 // Wait for it to become active
                 System.out.println("Waiting for " + TABLE_NAME + " to become ACTIVE...");
@@ -95,8 +98,9 @@ public class DynamoDBService {
 	}
 	
 	public void addTask(String taskID, String task){
-		Map<String, AttributeValue> item = new HashMap<String, AttributeValue>();
-        item.put("ID", new AttributeValue(taskID));
+		try{
+		HashMap<String, AttributeValue> item = new HashMap<String, AttributeValue>();
+        item.put("taskID", new AttributeValue().withS(taskID));
         //item.put("Task", new AttributeValue(task));
         
         PutItemRequest putItemRequest = new PutItemRequest()
@@ -105,17 +109,31 @@ public class DynamoDBService {
         
         PutItemResult putItemResult = dynamoDB.putItem(putItemRequest);
         System.out.println("Result: " + putItemResult);
+		}catch (InternalServerErrorException se){
+			System.out.println("Caught an InternalServerErrorException, which means the server encountered "
+                    + "a serious internal problem while trying to response to the client's request.");
+			System.out.println("Error Message:    " + se.getErrorMessage());
+		}
 	}
 	
-	public void checkTask(String taskID){
-		HashMap<String, AttributeValue> key = new HashMap<String, AttributeValue>();
-		key.put("ID", new AttributeValue().withN(taskID));
-		GetItemRequest getItemRequest = new GetItemRequest()
-			.withTableName(TABLE_NAME)
-			.withKey(key);
+	public boolean getTask(String taskID){
+		try{
+			HashMap<String, AttributeValue> key = new HashMap<String, AttributeValue>();
+			key.put("taskID", new AttributeValue().withS(taskID));
+	
+			GetItemRequest getItemRequest = new GetItemRequest()
+				.withTableName(TABLE_NAME)
+				.withKey(key);
+			
+			GetItemResult result = dynamoDB.getItem(getItemRequest);
+			
+			
+		}catch(ResourceNotFoundException rnf){
+			return false;
+		}
 		
-		GetItemResult result = dynamoDB.getItem(getItemRequest);
-		Map<String, AttributeValue> map = result.getItem();
+		return true;
+		
 	}
 	
 }
