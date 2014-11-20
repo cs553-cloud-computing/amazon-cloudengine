@@ -6,7 +6,6 @@ import java.util.Map;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
@@ -14,15 +13,13 @@ import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
 import com.amazonaws.services.dynamodbv2.model.DescribeTableRequest;
+import com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue;
 import com.amazonaws.services.dynamodbv2.model.GetItemRequest;
 import com.amazonaws.services.dynamodbv2.model.GetItemResult;
-import com.amazonaws.services.dynamodbv2.model.InternalServerErrorException;
 import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
 import com.amazonaws.services.dynamodbv2.model.KeyType;
 import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
 import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
-import com.amazonaws.services.dynamodbv2.model.PutItemResult;
-import com.amazonaws.services.dynamodbv2.model.ResourceNotFoundException;
 import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
 import com.amazonaws.services.dynamodbv2.model.TableDescription;
 import com.amazonaws.services.dynamodbv2.util.Tables;
@@ -32,22 +29,8 @@ public class DynamoDBService {
 	private static AmazonDynamoDBClient dynamoDB;
 	private static String TABLE_NAME = "task-table";
 	
-	DynamoDBService() throws Exception {
-        /*
-         * The ProfileCredentialsProvider will return your [default]
-         * credential profile by reading from the credentials file located at
-         * (~/.aws/credentials).
-         */
-        AWSCredentials credentials = null;
-        try {
-            credentials = new ProfileCredentialsProvider().getCredentials();
-        } catch (Exception e) {
-            throw new AmazonClientException(
-                    "Cannot load the credentials from the credential profiles file. " +
-                    "Please make sure that your credentials file is at the correct " +
-                    "location (~/.aws/credentials), and is in valid format.",
-                    e);
-        }
+	DynamoDBService(AWSCredentials credentials) throws Exception {
+   
         dynamoDB = new AmazonDynamoDBClient(credentials);
         Region usEast1 = Region.getRegion(Regions.US_EAST_1);
         dynamoDB.setRegion(usEast1);
@@ -97,26 +80,28 @@ public class DynamoDBService {
 
 	}
 	
+	
 	public void addTask(String taskID, String task){
-		try{
+
 		HashMap<String, AttributeValue> item = new HashMap<String, AttributeValue>();
         item.put("taskID", new AttributeValue().withS(taskID));
-        //item.put("Task", new AttributeValue(task));
+        item.put("Task", new AttributeValue(task));
+        
+        ExpectedAttributeValue notExpected = new ExpectedAttributeValue(false);
+        Map<String, ExpectedAttributeValue> expected = new HashMap<String, ExpectedAttributeValue>();
+        expected.put("taskID", notExpected);
         
         PutItemRequest putItemRequest = new PutItemRequest()
         	.withTableName(TABLE_NAME)
-        	.withItem(item);
+        	.withItem(item)
+        	.withExpected(expected);  //put item only if no taskID exists!
         
-        PutItemResult putItemResult = dynamoDB.putItem(putItemRequest);
-        System.out.println("Result: " + putItemResult);
-		}catch (InternalServerErrorException se){
-			System.out.println("Caught an InternalServerErrorException, which means the server encountered "
-                    + "a serious internal problem while trying to response to the client's request.");
-			System.out.println("Error Message:    " + se.getErrorMessage());
-		}
+        dynamoDB.putItem(putItemRequest);
+		
 	}
 	
-	public boolean getTask(String taskID){
+	/*public boolean getTask(String taskID){
+		Map<String, AttributeValue> map=null;
 		try{
 			HashMap<String, AttributeValue> key = new HashMap<String, AttributeValue>();
 			key.put("taskID", new AttributeValue().withS(taskID));
@@ -126,14 +111,19 @@ public class DynamoDBService {
 				.withKey(key);
 			
 			GetItemResult result = dynamoDB.getItem(getItemRequest);
-			
+			map = result.getItem();
 			
 		}catch(ResourceNotFoundException rnf){
+			
 			return false;
 		}
 		
-		return true;
+		if(map==null){
+			return false;
+		}else{
+			return true;
+		}
 		
-	}
+	}*/
 	
 }

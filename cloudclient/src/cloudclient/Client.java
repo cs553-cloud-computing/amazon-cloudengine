@@ -52,7 +52,7 @@ public class Client {
         System.out.println("Getting Started with Amazon SQS");
         System.out.println("===========================================\n");
        
-        String task_1 = "Sleep 2000"; 
+        String task_1 = "Sleep 10000"; 
         String task_2 = "Sleep 5000";
         try {
             // Create a queue

@@ -12,6 +12,7 @@ import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
+import com.amazonaws.services.dynamodbv2.model.ConditionalCheckFailedException;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.amazonaws.services.sqs.model.DeleteMessageRequest;
@@ -23,32 +24,42 @@ import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 
 public class RemoteWorker {
 	
-	public static void main(String[] args) throws Exception {
-		final int poolSize = 4;
-	    /*
+	static AmazonSQS sqs;
+	static DynamoDBService dynamoDB;
+	
+	private static void init() throws Exception {
+		/*
          * The ProfileCredentialsProvider will return your [default]
          * credential profile by reading from the credentials file located at
          * (~/.aws/credentials).
          */
+	     AWSCredentials credentials = null;
+	        try {
+	            credentials = new ProfileCredentialsProvider().getCredentials();
+	        } catch (Exception e) {
+	            throw new AmazonClientException(
+	                    "Cannot load the credentials from the credential profiles file. " +
+	                    "Please make sure that your credentials file is at the correct " +
+	                    "location (~/.aws/credentials), and is in valid format.",
+	                    e);
+	        }
+
+	        sqs = new AmazonSQSClient(credentials);
+	        Region usEast1 = Region.getRegion(Regions.US_EAST_1);
+			sqs.setRegion(usEast1);
+			
+			dynamoDB = new DynamoDBService(credentials);
+			
+	}
+	
+	public static void main(String[] args) throws Exception {
+		init();
 		
+		final int poolSize = 4;
+	    		
 		//Create thread pool
 		ExecutorService threadPool = Executors.newFixedThreadPool(poolSize);
 		
-        AWSCredentials credentials = null;
-        try {
-            credentials = new ProfileCredentialsProvider().getCredentials();
-        } catch (Exception e) {
-            throw new AmazonClientException(
-                    "Cannot load the credentials from the credential profiles file. " +
-                    "Please make sure that your credentials file is at the correct " +
-                    "location (~/.aws/credentials), and is in valid format.",
-                    e);
-        }
-
-        AmazonSQS sqs = new AmazonSQSClient(credentials);
-        Region usEast1 = Region.getRegion(Regions.US_EAST_1);
-		sqs.setRegion(usEast1);
-        
         //Get queue url
         GetQueueUrlResult urlResult = sqs.getQueueUrl("JobQueue");
         String jobQueueUrl = urlResult.getQueueUrl();
@@ -67,16 +78,20 @@ public class RemoteWorker {
 	          
 	            //Get task
 	            String task = message.getBody();
-	            
-	            String sleepLength = task.replaceAll("[^0-9]", "");
-	            //System.out.println(Long.parseLong(sleepLength));
-	            
-	            //Execute task
-	            threadPool.submit(new WorkerThread(Long.parseLong(sleepLength)));
-	            
-	            // Delete the message
-	            String messageRecieptHandle = message.getReceiptHandle();
-	            sqs.deleteMessage(new DeleteMessageRequest(jobQueueUrl, messageRecieptHandle));
+	            try{
+		            dynamoDB.addTask(task,task);
+		            String sleepLength = task.replaceAll("[^0-9]", "");
+		            //System.out.println(Long.parseLong(sleepLength));
+		            
+		            //Execute task
+		            threadPool.submit(new WorkerThread(Long.parseLong(sleepLength)));
+		            	            
+		            // Delete the message
+		            String messageRecieptHandle = message.getReceiptHandle();
+		            sqs.deleteMessage(new DeleteMessageRequest(jobQueueUrl, messageRecieptHandle));
+	            }catch(ConditionalCheckFailedException ccf){
+	        	   //DO something...
+	            }
 	            
 	        }	
         }
