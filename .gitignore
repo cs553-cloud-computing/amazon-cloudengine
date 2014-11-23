@@ -1,5 +1,6 @@
 cloudclient/bin/
 cloudworker/bin/
+scheduler/bin/
 .metadata
 *~
 target/
