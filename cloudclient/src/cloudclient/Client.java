@@ -13,22 +13,23 @@ public class Client {
 		
 		try {
 			/* make connection to server socket */
-			Socket socket = new Socket(IP_ADDR, PORT);
+			Socket clientSocket = new Socket(IP_ADDR, PORT);
 			
-			PrintWriter out = new PrintWriter(socket.getOutputStream(),true);
+			PrintWriter out = new PrintWriter(clientSocket.getOutputStream(),true);
 			
-			InputStream in = socket.getInputStream();
+			InputStream in = clientSocket.getInputStream();
 			BufferedReader bin = new BufferedReader(new InputStreamReader(in));
+			
+			out.println("hello world!");//test!
 			/* read the date from the socket */
 			String line;
 			while ( (line = bin.readLine()) != null)
 				System.out.println(line);
 			
 			/* close the socket connection*/
-			socket.close();
-		}
-
-		catch (IOException ioe) {
+			clientSocket.close();
+			
+		} catch (IOException ioe) {
 			System.err.println(ioe);
 		}
             

@@ -15,27 +15,19 @@ import com.amazonaws.services.sqs.model.CreateQueueRequest;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 
 
-public class SchedulerAndLocalWorker {
+public class FrontEndScheduler {
 	public static void main(String[] args){
 		
 		int PORT = Integer.parseInt(args[0]);
 		
 		try {
-			ServerSocket socket = new ServerSocket(PORT);
-			/* now listen for connections */
+			ServerSocket serverSocket = new ServerSocket(PORT);
+			/* listen for connections */
 			while (true) {
-				Socket client = socket.accept();
-				PrintWriter pout = new PrintWriter(client.getOutputStream(), true);
-				/* write the Date to the socket */
-				pout.println(new java.util.Date().toString());
+				new ServerThread(serverSocket.accept()).start();
 				
-				/* close the socket and resume */
-				/* listening for connections */
-				client.close();
 			}
-		}
-
-		catch (IOException ioe) {
+		} catch (IOException ioe) {
 			System.err.println(ioe);
 		}
 		
