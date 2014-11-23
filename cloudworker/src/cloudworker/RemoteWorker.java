@@ -82,7 +82,8 @@ public class RemoteWorker {
               
 		// Receive messages
         System.out.println("Receiving messages from JobQueue.\n");
-      
+        int maxNumberOfMessages = 10;
+        
         //...Check idle state
         boolean terminate = false;
         boolean startClock = true;
@@ -91,7 +92,10 @@ public class RemoteWorker {
         while(!terminate){       	
 	        while(getQueueSize(sqs, jobQueueUrl) > 0){	        
 	        	
-	        	ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(jobQueueUrl);
+	        	//Batch retrieving messages
+	        	ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest();
+	        	receiveMessageRequest.setQueueUrl(jobQueueUrl);
+	        	receiveMessageRequest.setMaxNumberOfMessages(maxNumberOfMessages);
 		        List<Message> messages = sqs.receiveMessage(receiveMessageRequest).getMessages();
 		        
 		        for (Message message : messages) {
