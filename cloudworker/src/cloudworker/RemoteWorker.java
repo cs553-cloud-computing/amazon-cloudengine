@@ -82,7 +82,6 @@ public class RemoteWorker {
               
 		// Receive messages
         System.out.println("Receiving messages from JobQueue.\n");
-        int maxNumberOfMessages = 10;
         
         //...Check idle state
         boolean terminate = false;
@@ -93,9 +92,10 @@ public class RemoteWorker {
 	        while(getQueueSize(sqs, jobQueueUrl) > 0){	        
 	        	
 	        	//Batch retrieving messages
-	        	ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest();
-	        	receiveMessageRequest.setQueueUrl(jobQueueUrl);
-	        	receiveMessageRequest.setMaxNumberOfMessages(maxNumberOfMessages);
+	        	ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest()
+	        		.withQueueUrl(jobQueueUrl)
+	        		.withMaxNumberOfMessages(10);
+	        	
 		        List<Message> messages = sqs.receiveMessage(receiveMessageRequest).getMessages();
 		        
 		        for (Message message : messages) {
@@ -206,7 +206,7 @@ public class RemoteWorker {
 		attributeNames.add("ApproximateNumberOfMessages");
 		
 		GetQueueAttributesRequest getAttributesRequest = new GetQueueAttributesRequest(queueUrl)
-		.withAttributeNames(attributeNames);
+			.withAttributeNames(attributeNames);
 		attributes = (HashMap<String, String>) sqs.getQueueAttributes(getAttributesRequest).getAttributes();
 		
 		return Integer.valueOf(attributes.get("ApproximateNumberOfMessages"));
