@@ -3,4 +3,3 @@ cloudworker/bin/
 scheduler/bin/
 .metadata
 *~
-target/
