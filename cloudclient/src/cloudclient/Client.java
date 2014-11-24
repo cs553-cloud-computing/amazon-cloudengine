@@ -30,8 +30,8 @@ public class Client {
 			// json test!
 			JSONObject json = new JSONObject();
 
-		    json.put("name","foo");
-		    json.put("num",new Integer(100));
+		    json.put("task_id","553");
+		    json.put("task",new Integer(5000));
 			      
 		    out.println(json.toString());
 						

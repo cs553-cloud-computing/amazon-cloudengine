@@ -13,6 +13,9 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.AWSCredentials;
@@ -100,20 +103,28 @@ public class RemoteWorker {
 		        
 		        for (Message message : messages) {
 		            System.out.println("  Message");
-		            System.out.println("    MessageId:     " + message.getMessageId());
-		            System.out.println("    ReceiptHandle: " + message.getReceiptHandle());
-		            System.out.println("    MD5OfBody:     " + message.getMD5OfBody());
+//		            System.out.println("    MessageId:     " + message.getMessageId());
+//		            System.out.println("    ReceiptHandle: " + message.getReceiptHandle());
+//		            System.out.println("    MD5OfBody:     " + message.getMD5OfBody());
 		            System.out.println("    Body:          " + message.getBody());
 		          
 		            //Get task
-		            String task = message.getBody();
+		            String messageBody = message.getBody();
+		            
+		            JSONParser parser=new JSONParser();
+		            Object obj = parser.parse(messageBody);
+	                JSONObject json = (JSONObject)obj;
+	                
+	                String task_id = json.get("task_id").toString();
+	                String task = json.get("task").toString();
+	                
 		            try{
-			            dynamoDB.addTask(task,task);
-			            String sleepLength = task.replaceAll("[^0-9]", "");
-			            //System.out.println(Long.parseLong(sleepLength));
+			            dynamoDB.addTask(task_id,task);
+//			            String sleepLength = messageBody.replaceAll("[^0-9]", "");
+//			            System.out.println(Long.parseLong(sleepLength));
 			            
 			            //Execute task
-			            threadPool.submit(new WorkerThread(Long.parseLong(sleepLength)));
+			            threadPool.submit(new WorkerThread(Long.parseLong(task)));
 			            	            
 			            // Delete the message
 			            String messageRecieptHandle = message.getReceiptHandle();
