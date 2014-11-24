@@ -3,8 +3,11 @@ Cloud Task Execution Framework
 
 *with Amazon EC2, S3, SQS, and DynamoDB*
 
+###Dependencies:  
+aws-java-sdk-1.9.6  
+json-simple-1.1.1.jar  
 
-##License:
+###License:
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 
