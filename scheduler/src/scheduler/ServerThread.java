@@ -2,6 +2,11 @@ package scheduler;
 
 import java.net.*;
 import java.io.*;
+
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
  
 public class ServerThread extends Thread {
     private Socket socket = null;
@@ -12,22 +17,30 @@ public class ServerThread extends Thread {
      
     public void run() {
  
-        try{
-            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-    		InputStream in = socket.getInputStream();
-			BufferedReader bin = new BufferedReader(new InputStreamReader(in));
+        try{        
+            InputStream inStream = socket.getInputStream();
+			OutputStream outStream = socket.getOutputStream();
+			
+			PrintWriter out = new PrintWriter(outStream, true);
+			BufferedReader bin = new BufferedReader(new InputStreamReader(inStream));
         
+			JSONParser parser=new JSONParser();
+			
             String inputLine;
-            while ((inputLine = bin.readLine()) != null) {
-                out.println(inputLine);
-                
+            while ((inputLine = bin.readLine()) != null) {     	
+                Object obj = parser.parse(inputLine);
+                JSONObject message = (JSONObject)obj;
+                System.out.println(message.get("name").toString());
             }
             
+          //out.println(inputLine);
             socket.close();
             
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        } catch (ParseException e) {
+			e.printStackTrace();
+		}
     }
     
 }

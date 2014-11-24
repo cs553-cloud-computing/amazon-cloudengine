@@ -3,6 +3,8 @@ package cloudclient;
 import java.net.*;
 import java.io.*;
 
+import org.json.simple.JSONObject;
+
 
 public class Client {
 	
@@ -14,18 +16,25 @@ public class Client {
 		try {
 			/* make connection to server socket */
 			Socket clientSocket = new Socket(IP_ADDR, PORT);
+			InputStream inStream = clientSocket.getInputStream();
+			OutputStream outStream = clientSocket.getOutputStream();
 			
-			PrintWriter out = new PrintWriter(clientSocket.getOutputStream(),true);
-			
-			InputStream in = clientSocket.getInputStream();
-			BufferedReader bin = new BufferedReader(new InputStreamReader(in));
-			
-			out.println("hello world!");//test!
+			PrintWriter out = new PrintWriter(outStream, true);									
+			BufferedReader bin = new BufferedReader(new InputStreamReader(inStream));
+						
 			/* read the date from the socket */
-			String line;
+			/*String line;
 			while ( (line = bin.readLine()) != null)
-				System.out.println(line);
+				System.out.println(line);*/
 			
+			// json test!
+			JSONObject json = new JSONObject();
+
+		    json.put("name","foo");
+		    json.put("num",new Integer(100));
+			      
+		    out.println(json.toString());
+						
 			/* close the socket connection*/
 			clientSocket.close();
 			

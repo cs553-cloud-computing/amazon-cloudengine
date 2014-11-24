@@ -20,8 +20,7 @@ public class FrontEndScheduler {
 		
 		int PORT = Integer.parseInt(args[0]);
 		
-		try {
-			ServerSocket serverSocket = new ServerSocket(PORT);
+		try(ServerSocket serverSocket = new ServerSocket(PORT)) {			
 			/* listen for connections */
 			while (true) {
 				new ServerThread(serverSocket.accept()).start();
@@ -58,8 +57,10 @@ public class FrontEndScheduler {
         System.out.println("Getting Started with Amazon SQS");
         System.out.println("===========================================\n");
        
+       	int batchSize = 10;
         String task_1 = "Sleep 10000"; 
         String task_2 = "Sleep 5000";
+        
         try {
             // Create a queue
             System.out.println("Creating a new SQS queue called JobQueue.\n");
@@ -73,12 +74,33 @@ public class FrontEndScheduler {
             }
             System.out.println();
             
-        	// Send a message
-            System.out.println("Sending a message to MyQueue.\n");
-            sqs.sendMessage(new SendMessageRequest(jobQueueUrl, task_1));
-            sqs.sendMessage(new SendMessageRequest(jobQueueUrl, task_2));
-            sqs.sendMessage(new SendMessageRequest(jobQueueUrl, task_1));
-            sqs.sendMessage(new SendMessageRequest(jobQueueUrl, task_2));
+        	// Send batch messages
+            System.out.println("Sending a message to jobQueue.\n");
+            
+            SendMessageBatchRequest batchRequest = new SendMessageBatchRequest().withQueueUrl(jobQueueUrl);
+
+		  	List<SendMessageBatchRequestEntry> entries = new ArrayList<SendMessageBatchRequestEntry>();
+		  	for (int i = 0; i < batchSize; i++){
+		    	entries.add(new SendMessageBatchRequestEntry()
+		    		.withId(Integer.toString(task_id))
+		        	.withMessageBody(task));		                                                
+		    }
+		  	batchRequest.setEntries(entries);
+		
+		  	SendMessageBatchResult batchResult = sqs.sendMessageBatch(batchRequest);
+		  		
+		  	// sendMessageBatch can return successfully, and yet individual batch
+		  	// items fail. So, make sure to retry the failed ones.
+		  	if (!batchResult.getFailed().isEmpty()) {
+		    	log.warn("Retrying sending messages...");		       
+		        	
+		    	sqs.sendMessageBatch(batchRequest);
+		  	}
+          
+//            sqs.sendMessage(new SendMessageRequest(jobQueueUrl, task_1));
+//            sqs.sendMessage(new SendMessageRequest(jobQueueUrl, task_2));
+//            sqs.sendMessage(new SendMessageRequest(jobQueueUrl, task_1));
+//            sqs.sendMessage(new SendMessageRequest(jobQueueUrl, task_2));
             
         } catch (AmazonServiceException ase) {
             System.out.println("Caught an AmazonServiceException, which means your request made it " +
