@@ -112,16 +112,13 @@ public class RemoteWorker {
 		            String messageBody = message.getBody();
 		            
 		            JSONParser parser=new JSONParser();
-		            Object obj = parser.parse(messageBody);
-	                JSONObject json = (JSONObject)obj;
+		            JSONObject json = (JSONObject)parser.parse(messageBody);
 	                
 	                String task_id = json.get("task_id").toString();
 	                String task = json.get("task").toString();
 	                
 		            try{
 			            dynamoDB.addTask(task_id,task);
-//			            String sleepLength = messageBody.replaceAll("[^0-9]", "");
-//			            System.out.println(Long.parseLong(sleepLength));
 			            
 			            //Execute task
 			            threadPool.submit(new WorkerThread(Long.parseLong(task)));
@@ -200,7 +197,7 @@ public class RemoteWorker {
             TerminateInstancesRequest terminateRequest = new TerminateInstancesRequest(instanceId);
             ec2.terminateInstances(terminateRequest);
         } catch (AmazonServiceException e) {
-            // Write out any exceptions that may have occurred.
+           // Write out any exceptions that may have occurred.
            System.out.println("Error terminating instances");
            System.out.println("Caught Exception: " + e.getMessage());
            System.out.println("Reponse Status Code: " + e.getStatusCode());
@@ -222,4 +219,5 @@ public class RemoteWorker {
 		
 		return Integer.valueOf(attributes.get("ApproximateNumberOfMessages"));
 	}
+	
 }
