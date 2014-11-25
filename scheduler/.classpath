@@ -4,5 +4,6 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
 	<classpathentry kind="con" path="com.amazonaws.eclipse.sdk.AWS_JAVA_SDK"/>
 	<classpathentry kind="lib" path="/home/ryan/CS553 Cloud Computing/proj4/aws-java-sdk-1.9.6/third-party/json/json-simple-1.1.1.jar"/>
+	<classpathentry kind="lib" path="/home/ryan/CS553 Cloud Computing/proj4/aws-java-sdk-1.9.6/third-party/commons-cli-1.2/commons-cli-1.2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

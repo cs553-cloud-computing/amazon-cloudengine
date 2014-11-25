@@ -22,18 +22,25 @@ public class Client {
 			PrintWriter out = new PrintWriter(outStream, true);									
 			BufferedReader bin = new BufferedReader(new InputStreamReader(inStream));
 						
+			System.out.println(clientSocket.getLocalSocketAddress());
 			/* read the date from the socket */
 			/*String line;
 			while ( (line = bin.readLine()) != null)
 				System.out.println(line);*/
 			
 			// json test!
-			JSONObject json = new JSONObject();
+			JSONObject json_1 = new JSONObject();
 
-		    json.put("task_id","553");
-		    json.put("task",new Integer(5000));
+		    json_1.put("task_id","553");
+		    json_1.put("task",new Integer(5000));
+		    
+		    JSONObject json_2 = new JSONObject();
+
+		    json_2.put("task_id","554");
+		    json_2.put("task",new Integer(1000));
 			      
-		    out.println(json.toString());
+		    out.println(json_1.toString());
+		    out.println(json_2.toString());
 						
 			/* close the socket connection*/
 			clientSocket.close();

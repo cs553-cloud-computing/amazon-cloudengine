@@ -41,14 +41,9 @@ public class SQSService {
 	}
 	
 	public void batchSend(List<SendMessageBatchRequestEntry> entries){
-	    
-        System.out.println("===========================================");
-        System.out.println("Getting Started with Amazon SQS");
-        System.out.println("===========================================\n");
-           
-        
+ 
         try {
-            // Create a queue
+            // Create a queue or returns the URL of an existing one
             System.out.println("Creating a new SQS queue called JobQueue.\n");
             CreateQueueRequest createQueueRequest = new CreateQueueRequest("JobQueue");
             String jobQueueUrl = sqs.createQueue(createQueueRequest).getQueueUrl();
@@ -75,11 +70,6 @@ public class SQSService {
 		        	
 		    	sqs.sendMessageBatch(batchRequest);
 		  	}
-          
-//            sqs.sendMessage(new SendMessageRequest(jobQueueUrl, task_1));
-//            sqs.sendMessage(new SendMessageRequest(jobQueueUrl, task_2));
-//            sqs.sendMessage(new SendMessageRequest(jobQueueUrl, task_1));
-//            sqs.sendMessage(new SendMessageRequest(jobQueueUrl, task_2));
             
         } catch (AmazonServiceException ase) {
             System.out.println("Caught an AmazonServiceException, which means your request made it " +
