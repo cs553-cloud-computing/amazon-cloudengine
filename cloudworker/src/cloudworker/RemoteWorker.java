@@ -34,6 +34,7 @@ import com.amazonaws.services.sqs.model.GetQueueAttributesRequest;
 import com.amazonaws.services.sqs.model.GetQueueUrlResult;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
+import commandline.CommandLineInterface;
 
 
 public class RemoteWorker {
@@ -71,11 +72,13 @@ public class RemoteWorker {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		init();
+		//Command interpreter
+		CommandLineInterface cmd = new CommandLineInterface(args);		
+		final int poolSize = Integer.parseInt(cmd.getOptionValue("s"));
+		long idle_time = Long.parseLong(cmd.getOptionValue("i")); //idle time = 60 sec
 		
-		final int poolSize = 4;
-		long idle_time = 60; //idle time = 60 sec
-	    		
+		init();
+
 		//Create thread pool
 		ExecutorService threadPool = Executors.newFixedThreadPool(poolSize);
 		
@@ -91,7 +94,7 @@ public class RemoteWorker {
         boolean startClock = true;
         long start_time = 0,end_time;
 
-        while(!terminate){       	
+        while(!terminate || idle_time == 0){       	
 	        while(getQueueSize(sqs, jobQueueUrl) > 0){	        
 	        	
 	        	//Batch retrieving messages

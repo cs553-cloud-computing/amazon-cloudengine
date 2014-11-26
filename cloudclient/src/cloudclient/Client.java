@@ -5,29 +5,34 @@ import java.io.*;
 
 import org.json.simple.JSONObject;
 
+import commandline.CommandLineInterface;
+
 
 public class Client {
 	
 	public static void main(String[] args) throws Exception {
 		
-		String IP_ADDR = args[0];
-		int PORT = Integer.parseInt(args[1]);
+		//Command interpreter
+		CommandLineInterface command = new CommandLineInterface(args);
+		
+		String socket = command.getOptionValue("s");
+		String Host_Addr = socket.split(":")[0];
+		int Port = Integer.parseInt(socket.split(":")[1]);
+		
+		System.out.println(Port);
+		String workload = command.getOptionValue("w");
 		
 		try {
-			/* make connection to server socket */
-			Socket clientSocket = new Socket(IP_ADDR, PORT);
+			// make connection to server socket 
+			Socket clientSocket = new Socket(Host_Addr, Port);
 			InputStream inStream = clientSocket.getInputStream();
 			OutputStream outStream = clientSocket.getOutputStream();
 			
 			PrintWriter out = new PrintWriter(outStream, true);									
 			BufferedReader bin = new BufferedReader(new InputStreamReader(inStream));
 						
-			System.out.println(clientSocket.getLocalSocketAddress());
-			/* read the date from the socket */
-			/*String line;
-			while ( (line = bin.readLine()) != null)
-				System.out.println(line);*/
-			
+			//System.out.println(clientSocket.getLocalSocketAddress());
+					
 			// json test!
 			JSONObject json_1 = new JSONObject();
 
@@ -42,7 +47,13 @@ public class Client {
 		    out.println(json_1.toString());
 		    out.println(json_2.toString());
 						
-			/* close the socket connection*/
+		    // read the date from the socket 
+ 			/*String line;
+ 			while ( (line = bin.readLine()) != null)
+ 				System.out.println(line);*/
+		    
+		    
+			// close the socket connection
 			clientSocket.close();
 			
 		} catch (IOException ioe) {
