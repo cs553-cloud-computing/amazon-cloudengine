@@ -6,6 +6,7 @@ Cloud Task Execution Framework
 ###Dependencies:  
 aws-java-sdk-1.9.6  
 json-simple-1.1.1.jar  
+commons-cli-1.2  
 
 ###License:
 
