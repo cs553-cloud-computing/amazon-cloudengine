@@ -124,7 +124,7 @@ public class RemoteWorker {
 			            dynamoDB.addTask(task_id,task);
 			            
 			            //Execute task
-			            threadPool.submit(new WorkerThread(Long.parseLong(task)));
+			            threadPool.submit(new WorkerThread(task_id,task,sqs));
 			            	            
 			            // Delete the message
 			            String messageRecieptHandle = message.getReceiptHandle();

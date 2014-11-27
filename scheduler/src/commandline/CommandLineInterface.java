@@ -58,4 +58,10 @@ public class CommandLineInterface {
 		}
 				
 	}
+	
+	public boolean hasOption(String option){
+		
+		return command.hasOption(option);
+		
+	}
 }

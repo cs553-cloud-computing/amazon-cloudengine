@@ -17,13 +17,17 @@ public class FrontEndScheduler {
 		CommandLineInterface cmd = new CommandLineInterface(args);
 		
 		int portNumber = Integer.parseInt(cmd.getOptionValue("s"));		
-		String localWorkers = cmd.getOptionValue("lw");
-		
-		if(localWorkers != null){
+				
+		if(cmd.hasOption("lw")){
 			workerType = "lw";
-			poolSize = Integer.parseInt(localWorkers);
-		}else{
+			poolSize = Integer.parseInt(cmd.getOptionValue("lw"));
+			
+		} else if(cmd.hasOption("rw")){
 			workerType = "rw";
+			
+		} else{
+			System.out.println("Please specify worker type!");
+			System.exit(0);
 		}
 				
 		try(ServerSocket serverSocket = new ServerSocket(portNumber)) {			

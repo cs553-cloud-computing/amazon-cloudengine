@@ -21,7 +21,8 @@ import com.amazonaws.services.sqs.model.SendMessageBatchRequestEntry;
 
 public class ServerThread extends Thread {
     private Socket socket = null;
-    private SQSService sqs;
+    private SQSService jobQ;
+    private SQSService responseQ;
     String workerType;
 	int poolSize;
  
@@ -31,7 +32,10 @@ public class ServerThread extends Thread {
         this.poolSize = poolSize;
         
         if(workerType.equals("rw")){
-        	 sqs = new SQSService();
+        	 jobQ = new SQSService("JobQueue");
+        	 //Set client ip as response queue name
+        	 String resQName = socket.getInetAddress().toString().substring(1).replaceAll("[^0-9]", "-");
+        	 responseQ = new SQSService(resQName);
         }
         
     }
@@ -94,7 +98,22 @@ public class ServerThread extends Thread {
     
     }
     
-    public void remoteWorker(PrintWriter out, BufferedReader in) throws ParseException{
+    public void remoteWorker(PrintWriter out, BufferedReader in){
+    	try {
+    		//Send tasks
+			batchSend(in);
+			
+			//Get results
+			batchRetrieve(out);
+			
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        
+    }
+    
+    public void batchSend(BufferedReader in) throws ParseException{
     	//Batch sending task to remote workers 
 		List<SendMessageBatchRequestEntry> entries = new ArrayList<SendMessageBatchRequestEntry>();
         String message;
@@ -118,7 +137,7 @@ public class ServerThread extends Thread {
 				}
 																
 			  	if(entries.size() == batchSize){
-			  		sqs.batchSend(entries);
+			  		jobQ.batchSend(entries);
 			    	entries.clear();		    	
 			    }
 			  	
@@ -130,10 +149,13 @@ public class ServerThread extends Thread {
 		}
         
         if(!entries.isEmpty()){
-        	sqs.batchSend(entries);
+        	jobQ.batchSend(entries);
         	entries.clear();
         }
-        
+    }
+    
+    public void batchRetrieve(PrintWriter out){
+    	
     }
      
 }

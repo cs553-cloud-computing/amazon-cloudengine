@@ -17,8 +17,9 @@ import com.amazonaws.services.sqs.model.SendMessageBatchResult;
 
 public class SQSService {
 	private AmazonSQS sqs;
+	private String jobQueueUrl;
 	
-	SQSService(){
+	public SQSService(String queueName){
 		/*
          * The ProfileCredentialsProvider will return your [default]
          * credential profile by reading from the credentials file located at
@@ -38,25 +39,25 @@ public class SQSService {
         sqs = new AmazonSQSClient(credentials);
         Region usEast1 = Region.getRegion(Regions.US_EAST_1);
 		sqs.setRegion(usEast1);
+				
+		// Create a queue or returns the URL of an existing one
+        System.out.println("Creating a new SQS queue called " + queueName);
+        CreateQueueRequest createQueueRequest = new CreateQueueRequest(queueName);
+        jobQueueUrl = sqs.createQueue(createQueueRequest).getQueueUrl();
+        
 	}
 	
 	public void batchSend(List<SendMessageBatchRequestEntry> entries){
  
         try {
-            // Create a queue or returns the URL of an existing one
-            System.out.println("Creating a new SQS queue called JobQueue.\n");
-            CreateQueueRequest createQueueRequest = new CreateQueueRequest("JobQueue");
-            String jobQueueUrl = sqs.createQueue(createQueueRequest).getQueueUrl();
-
             // List queues
             /*System.out.println("Listing all queues in your account.\n");
             for (String queueUrl : sqs.listQueues().getQueueUrls()) {
                 System.out.println("  QueueUrl: " + queueUrl);
-            }
-            System.out.println();*/
+            }*/
             
         	// Send batch messages
-            System.out.println("Sending a message to jobQueue.\n");
+            System.out.println("\nSending a message to jobQueue.\n");
             
             SendMessageBatchRequest batchRequest = new SendMessageBatchRequest().withQueueUrl(jobQueueUrl);		  	
 		  	batchRequest.setEntries(entries);
