@@ -9,6 +9,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.io.*;
 
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
 import localworker.LocalWorker;
 
 import com.amazonaws.services.sqs.model.SendMessageBatchRequestEntry;
@@ -50,12 +55,12 @@ public class ServerThread extends Thread {
 			            
             socket.close();
             
-        } catch (IOException e) {
+        } catch (IOException | ParseException e) {
             e.printStackTrace();
         } 
     }
     
-    public void localWorker(PrintWriter out, BufferedReader in){
+    public void localWorker(PrintWriter out, BufferedReader in) throws ParseException{
     	BlockingQueue<String> jobQ = new ArrayBlockingQueue<String>(1024*1024);
     	    	
     	//Create thread pool for localworker
@@ -65,10 +70,18 @@ public class ServerThread extends Thread {
 			workerThreads.submit(new LocalWorker(jobQ));
 		}
 		
-		String task;
+		String message;
     	try {
-			while ((task = in.readLine()) != null) {   
-				jobQ.put(task);
+    		JSONParser parser=new JSONParser();
+    		
+			while ((message = in.readLine()) != null) {
+				
+				JSONArray taskList = (JSONArray)parser.parse(message);
+				
+				for(int i=0; i< taskList.size(); i++){
+					JSONObject task = (JSONObject)taskList.get(i);
+					jobQ.put(task.toString());
+				}
 			}
 		} catch (IOException | InterruptedException e) {
 			// TODO Auto-generated catch block
@@ -81,36 +94,46 @@ public class ServerThread extends Thread {
     
     }
     
-    public void remoteWorker(PrintWriter out, BufferedReader in){
+    public void remoteWorker(PrintWriter out, BufferedReader in) throws ParseException{
     	//Batch sending task to remote workers 
 		List<SendMessageBatchRequestEntry> entries = new ArrayList<SendMessageBatchRequestEntry>();
-        String task;
+        String message;
         int batchSize = 10; 
         int counter = 0;
 
         try {
-			while ((task = in.readLine()) != null) {     	
-				entries.add(new SendMessageBatchRequestEntry()
+        	JSONParser parser=new JSONParser();
+        	
+			while ((message = in.readLine()) != null) {
+				JSONArray taskList = (JSONArray)parser.parse(message);
+				
+				for(int i=0; i< taskList.size(); i++){
+					JSONObject task = (JSONObject)taskList.get(i);
+					
+					entries.add(new SendMessageBatchRequestEntry()
 					.withId(Integer.toString(counter))
-					.withMessageBody(task));	
-				
-				counter++;
-				
-			  	if(counter == batchSize){
+					.withMessageBody(task.toString()));	
+					
+					counter++;
+				}
+																
+			  	if(entries.size() == batchSize){
 			  		sqs.batchSend(entries);
-			    	entries.clear();
-			    	counter = 0;
+			    	entries.clear();		    	
 			    }
+			  	
+			  	
 			}
+			
 		} catch (IOException e) {			
 			e.printStackTrace();
 		}
         
         if(!entries.isEmpty()){
         	sqs.batchSend(entries);
+        	entries.clear();
         }
         
     }
-    
-  
+     
 }
