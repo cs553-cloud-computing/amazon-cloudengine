@@ -16,6 +16,7 @@ import org.json.simple.parser.ParseException;
 
 import localworker.LocalWorker;
 
+import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequestEntry;
 
 
@@ -31,13 +32,6 @@ public class ServerThread extends Thread {
         this.workerType = workerType;
         this.poolSize = poolSize;
         
-        if(workerType.equals("rw")){
-        	 jobQ = new SQSService("JobQueue");
-        	 //Set client ip as response queue name
-        	 String resQName = socket.getInetAddress().toString().substring(1).replaceAll("[^0-9]", "-");
-        	 responseQ = new SQSService(resQName);
-        }
-        
     }
      
     public void run() {
@@ -50,6 +44,10 @@ public class ServerThread extends Thread {
 			BufferedReader in = new BufferedReader(new InputStreamReader(inStream));
         			
 			if(workerType.equals("rw")){
+				jobQ = new SQSService("JobQueue");
+	        	 //Set client ip as response queue name
+	        	 String resQName = socket.getInetAddress().toString().substring(1).replaceAll("[^0-9]", "-");
+	        	 responseQ = new SQSService(resQName);
 				//Remote worker
 				remoteWorker(out, in);				
 			}else{			
@@ -101,10 +99,10 @@ public class ServerThread extends Thread {
     public void remoteWorker(PrintWriter out, BufferedReader in){
     	try {
     		//Send tasks
-			batchSend(in);
+			remoteBatchSend(in);
 			
 			//Get results
-			batchRetrieve(out);
+			remoteBatchReceive(out);
 			
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block
@@ -113,7 +111,7 @@ public class ServerThread extends Thread {
         
     }
     
-    public void batchSend(BufferedReader in) throws ParseException{
+    public void remoteBatchSend(BufferedReader in) throws ParseException{
     	//Batch sending task to remote workers 
 		List<SendMessageBatchRequestEntry> entries = new ArrayList<SendMessageBatchRequestEntry>();
         String message;
@@ -154,8 +152,25 @@ public class ServerThread extends Thread {
         }
     }
     
-    public void batchRetrieve(PrintWriter out){
-    	
+    public void remoteBatchReceive(PrintWriter out){
+    	while(true){ 
+	    	while(responseQ.getQueueSize() > 0){	 
+	    		 List<Message> messages = responseQ.batchReceive();
+			     //out.println(messages);  
+			     
+		        for (Message message : messages) {
+		            System.out.println("  Message");
+	//		            System.out.println("    MessageId:     " + message.getMessageId());
+	//		            System.out.println("    ReceiptHandle: " + message.getReceiptHandle());
+	//		            System.out.println("    MD5OfBody:     " + message.getMD5OfBody());
+		            System.out.println("    Body:          " + message.getBody());
+		          
+		            //Get task
+		            String messageBody = message.getBody();
+		        }
+	    	 }
+    	}
+    	 
     }
      
 }

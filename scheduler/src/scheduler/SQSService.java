@@ -1,5 +1,8 @@
 package scheduler;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 
 import com.amazonaws.AmazonClientException;
@@ -11,13 +14,16 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.amazonaws.services.sqs.model.CreateQueueRequest;
+import com.amazonaws.services.sqs.model.GetQueueAttributesRequest;
+import com.amazonaws.services.sqs.model.Message;
+import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequest;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequestEntry;
 import com.amazonaws.services.sqs.model.SendMessageBatchResult;
 
 public class SQSService {
 	private AmazonSQS sqs;
-	private String jobQueueUrl;
+	private String queueUrl;
 	
 	public SQSService(String queueName){
 		/*
@@ -43,23 +49,17 @@ public class SQSService {
 		// Create a queue or returns the URL of an existing one
         System.out.println("Creating a new SQS queue called " + queueName);
         CreateQueueRequest createQueueRequest = new CreateQueueRequest(queueName);
-        jobQueueUrl = sqs.createQueue(createQueueRequest).getQueueUrl();
+        queueUrl = sqs.createQueue(createQueueRequest).getQueueUrl();
         
 	}
 	
 	public void batchSend(List<SendMessageBatchRequestEntry> entries){
  
-        try {
-            // List queues
-            /*System.out.println("Listing all queues in your account.\n");
-            for (String queueUrl : sqs.listQueues().getQueueUrls()) {
-                System.out.println("  QueueUrl: " + queueUrl);
-            }*/
-            
+        try {                        
         	// Send batch messages
             System.out.println("\nSending a message to jobQueue.\n");
             
-            SendMessageBatchRequest batchRequest = new SendMessageBatchRequest().withQueueUrl(jobQueueUrl);		  	
+            SendMessageBatchRequest batchRequest = new SendMessageBatchRequest().withQueueUrl(queueUrl);		  	
 		  	batchRequest.setEntries(entries);
 		
 		  	SendMessageBatchResult batchResult = sqs.sendMessageBatch(batchRequest);
@@ -88,5 +88,31 @@ public class SQSService {
         }
             
     }
+	
+	public List<Message> batchReceive(){
+		//Batch retrieving messages
+    	ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest()
+    		.withQueueUrl(queueUrl)
+    		.withMaxNumberOfMessages(10);
+    	
+        List<Message> messages = sqs.receiveMessage(receiveMessageRequest).getMessages();
+        
+        return messages;
+        
+	}
+	
+	public int getQueueSize(){
+		HashMap<String, String> attributes;
+		
+		Collection<String> attributeNames = new ArrayList<String>();
+		attributeNames.add("ApproximateNumberOfMessages");
+		
+		GetQueueAttributesRequest getAttributesRequest = new GetQueueAttributesRequest(queueUrl)
+			.withAttributeNames(attributeNames);
+		attributes = (HashMap<String, String>) sqs.getQueueAttributes(getAttributesRequest).getAttributes();
+		
+		return Integer.valueOf(attributes.get("ApproximateNumberOfMessages"));
+		
+	}
 	
 }

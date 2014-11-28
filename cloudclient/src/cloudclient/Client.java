@@ -34,6 +34,8 @@ public class Client {
 			//Batch sending tasks
 			batchSendTask(out, workload);
 		    
+			//Batch receive responses
+			batchReceiveResp(bin);
 			// close the socket connection
 			clientSocket.close();
 			
@@ -110,6 +112,13 @@ public class Client {
 		
 		return ip;
 		
+	}
+	
+	public static void batchReceiveResp(BufferedReader in) throws IOException{
+		String message;
+		while ((message = in.readLine()) != null) {
+			
+		}
 	}
 	
 }
