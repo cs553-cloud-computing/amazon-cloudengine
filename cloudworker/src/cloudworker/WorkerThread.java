@@ -1,4 +1,3 @@
-package cloudworker;
 
 import org.json.simple.JSONObject;
 
@@ -24,8 +23,8 @@ public class WorkerThread implements Runnable {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void run() {	
-		//Get queue url
-        GetQueueUrlResult urlResult = sqs.getQueueUrl("127-0-0-1");
+		//Get queue url	
+        GetQueueUrlResult urlResult = sqs.getQueueUrl(responseQName);
         String QueueUrl = urlResult.getQueueUrl();
         JSONObject result = new JSONObject();
         
