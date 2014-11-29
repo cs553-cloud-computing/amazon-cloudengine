@@ -1,4 +1,3 @@
-package scheduler;
 
 import java.net.*;
 import java.util.ArrayList;
@@ -14,8 +13,6 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import localworker.LocalWorker;
-
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequestEntry;
 
@@ -24,9 +21,10 @@ public class ServerThread extends Thread {
     private Socket socket = null;
     private SQSService jobQ;
     private SQSService responseQ;
-    String workerType;
-	int poolSize;
- 
+    private String workerType;
+    private int poolSize;
+    private int msg_cnt = 0;
+
     public ServerThread(Socket socket, String workerType, int poolSize ) {
         this.socket = socket;          
         this.workerType = workerType;
@@ -106,7 +104,7 @@ public class ServerThread extends Thread {
 		List<SendMessageBatchRequestEntry> entries = new ArrayList<SendMessageBatchRequestEntry>();
         String message;
         int batchSize = 10; 
-        int counter = 0;
+        
 
         try {
         	JSONParser parser=new JSONParser();
@@ -117,12 +115,13 @@ public class ServerThread extends Thread {
 				
 				for(int i=0; i< taskList.size(); i++){
 					JSONObject task = (JSONObject)taskList.get(i);
-					
+					msg_cnt++;
+
 					entries.add(new SendMessageBatchRequestEntry()
-					.withId(Integer.toString(counter))
+					.withId(Integer.toString(msg_cnt))
 					.withMessageBody(task.toString()));	
 					
-					counter++;
+					
 				}
 																
 			  	if(entries.size() == batchSize){
@@ -144,7 +143,7 @@ public class ServerThread extends Thread {
     }
     
     public void remoteBatchReceive(PrintWriter out){
-    	while(true){ 
+    	while(msg_cnt != 0){ 
 	    	while(responseQ.getQueueSize() > 0){	 
 	    		 List<Message> messages = responseQ.batchReceive();
 			     //out.println(messages.toString());  
@@ -158,6 +157,11 @@ public class ServerThread extends Thread {
 		          
 		            //Get task
 		            String messageBody = message.getBody();
+			    msg_cnt--;
+			    // Delete the message
+                            String messageRecieptHandle = message.getReceiptHandle();
+                            responseQ.deleteMessage(messageRecieptHandle);
+
 		        }
 	    	 }
     	}

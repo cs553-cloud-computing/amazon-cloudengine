@@ -1,4 +1,3 @@
-package scheduler;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -20,6 +19,7 @@ import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequest;
 import com.amazonaws.services.sqs.model.SendMessageBatchRequestEntry;
 import com.amazonaws.services.sqs.model.SendMessageBatchResult;
+import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 
 public class SQSService {
 	private AmazonSQS sqs;
@@ -113,6 +113,11 @@ public class SQSService {
 		
 		return Integer.valueOf(attributes.get("ApproximateNumberOfMessages"));
 		
+	}
+
+	public void deleteMessage(String messageRecieptHandle){
+		 sqs.deleteMessage(new DeleteMessageRequest(queueUrl, messageRecieptHandle));
+
 	}
 	
 }
