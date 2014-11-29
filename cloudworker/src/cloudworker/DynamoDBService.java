@@ -38,7 +38,7 @@ public class DynamoDBService {
         createTable();
     }
 	
-	private void createTable() throws Exception {
+	private static void createTable() throws Exception {
 		try {
             // Create table if it does not exist yet
             if (Tables.doesTableExist(dynamoDB, TABLE_NAME)) {
@@ -81,7 +81,7 @@ public class DynamoDBService {
 	}
 	
 	
-	public void addTask(String taskID, String task){
+	public static void addTask(String taskID, String task){
 
 		HashMap<String, AttributeValue> item = new HashMap<String, AttributeValue>();
         item.put("taskID", new AttributeValue().withS(taskID));

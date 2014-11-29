@@ -45,17 +45,17 @@ public class SQSService {
         sqs = new AmazonSQSClient(credentials);
         Region usEast1 = Region.getRegion(Regions.US_EAST_1);
 		sqs.setRegion(usEast1);
-				
+		
 		// Create a queue or returns the URL of an existing one
         System.out.println("Creating a new SQS queue called " + queueName);
         CreateQueueRequest createQueueRequest = new CreateQueueRequest(queueName);
         queueUrl = sqs.createQueue(createQueueRequest).getQueueUrl();
-        
+                
 	}
 	
 	public void batchSend(List<SendMessageBatchRequestEntry> entries){
  
-        try {                        
+        try {        
         	// Send batch messages
             System.out.println("\nSending a message to jobQueue.\n");
             

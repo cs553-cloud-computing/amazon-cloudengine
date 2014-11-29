@@ -24,20 +24,21 @@ public class Client {
 		
 		try {
 			// make connection to server socket 
-			Socket clientSocket = new Socket(Host_Addr, Port);
-			InputStream inStream = clientSocket.getInputStream();
-			OutputStream outStream = clientSocket.getOutputStream();
+			Socket client = new Socket(Host_Addr, Port);
+			InputStream inStream = client.getInputStream();
+			OutputStream outStream = client.getOutputStream();
 			
 			PrintWriter out = new PrintWriter(outStream, true);									
 			BufferedReader bin = new BufferedReader(new InputStreamReader(inStream));
 									
 			//Batch sending tasks
 			batchSendTask(out, workload);
-		    
+					
 			//Batch receive responses
-			batchReceiveResp(bin);
+			batchReceiveResp(inStream);
+			
 			// close the socket connection
-			clientSocket.close();
+			client.close();
 			
 		} catch (IOException ioe) {
 			System.err.println(ioe);
@@ -114,11 +115,14 @@ public class Client {
 		
 	}
 	
-	public static void batchReceiveResp(BufferedReader in) throws IOException{
+	public static void batchReceiveResp(InputStream inStream) throws IOException{
 		String message;
-		while ((message = in.readLine()) != null) {
-			
+		BufferedReader bin = new BufferedReader(new InputStreamReader(inStream));
+		
+		while((message = bin.readLine()) != null){
+			System.out.println(message);
 		}
+		
 	}
 	
 }

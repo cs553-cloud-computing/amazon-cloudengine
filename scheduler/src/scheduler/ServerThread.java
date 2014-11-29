@@ -36,20 +36,25 @@ public class ServerThread extends Thread {
      
     public void run() {
  
-        try{        
+        try(       
             InputStream inStream = socket.getInputStream();
 			OutputStream outStream = socket.getOutputStream();
 			
 			PrintWriter out = new PrintWriter(outStream, true);
 			BufferedReader in = new BufferedReader(new InputStreamReader(inStream));
-        			
+		){
 			if(workerType.equals("rw")){
 				jobQ = new SQSService("JobQueue");
-	        	 //Set client ip as response queue name
-	        	 String resQName = socket.getInetAddress().toString().substring(1).replaceAll("[^0-9]", "-");
-	        	 responseQ = new SQSService(resQName);
-				//Remote worker
-				remoteWorker(out, in);				
+	        	//Set client ip as response queue name
+	        	String resQName = socket.getInetAddress().toString().substring(1).replaceAll("[^0-9]", "-");
+	        	responseQ = new SQSService(resQName);
+	        	
+	        	//Send tasks
+				remoteBatchSend(in,out);
+				
+				//Get results
+				remoteBatchReceive(out);
+										
 			}else{			
 				//Local worker
 				localWorker(out, in);
@@ -96,22 +101,7 @@ public class ServerThread extends Thread {
     
     }
     
-    public void remoteWorker(PrintWriter out, BufferedReader in){
-    	try {
-    		//Send tasks
-			remoteBatchSend(in);
-			
-			//Get results
-			remoteBatchReceive(out);
-			
-		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-        
-    }
-    
-    public void remoteBatchSend(BufferedReader in) throws ParseException{
+    public void remoteBatchSend(BufferedReader in,PrintWriter out) throws ParseException{
     	//Batch sending task to remote workers 
 		List<SendMessageBatchRequestEntry> entries = new ArrayList<SendMessageBatchRequestEntry>();
         String message;
@@ -122,6 +112,7 @@ public class ServerThread extends Thread {
         	JSONParser parser=new JSONParser();
         	
 			while ((message = in.readLine()) != null) {
+				out.println("Success!");
 				JSONArray taskList = (JSONArray)parser.parse(message);
 				
 				for(int i=0; i< taskList.size(); i++){
@@ -156,7 +147,7 @@ public class ServerThread extends Thread {
     	while(true){ 
 	    	while(responseQ.getQueueSize() > 0){	 
 	    		 List<Message> messages = responseQ.batchReceive();
-			     //out.println(messages);  
+			     //out.println(messages.toString());  
 			     
 		        for (Message message : messages) {
 		            System.out.println("  Message");
