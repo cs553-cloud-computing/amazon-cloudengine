@@ -19,7 +19,7 @@ public class WorkerThread implements Runnable {
 		this.sleepLength = Long.parseLong(task);
 		this.sqs = sqs;
 			
-		System.out.println(responseQName);
+		//System.out.println(responseQName);
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -37,7 +37,7 @@ public class WorkerThread implements Runnable {
         	result.put("result", "0");
         	
         	sqs.sendMessage(new SendMessageRequest(QueueUrl, result.toString()));
-        	System.out.println(Thread.currentThread().getName()+" sleep done!");
+        	//System.out.println(Thread.currentThread().getName()+" sleep done!");
         	
         } catch (Exception e) {
         	result.put("task_id", task_id);

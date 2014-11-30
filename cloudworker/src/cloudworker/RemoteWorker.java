@@ -78,7 +78,8 @@ public class RemoteWorker {
 		long idle_time = Long.parseLong(cmd.getOptionValue("i")); //idle time = 60 sec
 		
 		init();
-
+		System.out.println("Initialized one remote worker.\n");
+		
 		//Create thread pool
 		ExecutorService threadPool = Executors.newFixedThreadPool(poolSize);
 		BlockingExecutor blockingPool = new BlockingExecutor(threadPool, poolSize);
@@ -88,7 +89,7 @@ public class RemoteWorker {
         String jobQueueUrl = urlResult.getQueueUrl();
               
 		// Receive messages
-        System.out.println("Receiving messages from JobQueue.\n");
+        //System.out.println("Receiving messages from JobQueue.\n");
         
         //...Check idle state
         boolean terminate = false;
@@ -108,11 +109,11 @@ public class RemoteWorker {
 		        List<Message> messages = sqs.receiveMessage(receiveMessageRequest).getMessages();
 		        
 		        for (Message message : messages) {
-		            System.out.println("  Message");
+		            //System.out.println("  Message");
 //		            System.out.println("    MessageId:     " + message.getMessageId());
 //		            System.out.println("    ReceiptHandle: " + message.getReceiptHandle());
 //		            System.out.println("    MD5OfBody:     " + message.getMD5OfBody());
-		            System.out.println("    Body:          " + message.getBody());
+		            //System.out.println("    Body:          " + message.getBody());
 		          
 		            //Get task
 		            String messageBody = message.getBody();		        		            
@@ -152,7 +153,7 @@ public class RemoteWorker {
 	        }
         }
         
-        System.out.println();
+        //System.out.println();
         
         threadPool.shutdown();
         // Wait until all threads are finished

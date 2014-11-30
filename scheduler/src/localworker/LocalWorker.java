@@ -43,7 +43,7 @@ public class LocalWorker implements Runnable{
 		        	result.put("result", "0");
 		        	respQ.put(result.toString());
 		        	
-		        	System.out.println(Thread.currentThread().getName()+" sleep done!");
+		        	//System.out.println(Thread.currentThread().getName()+" sleep done!");
 	        	}
         	}
         	       	

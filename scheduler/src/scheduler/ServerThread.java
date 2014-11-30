@@ -194,11 +194,11 @@ public class ServerThread extends Thread {
 	    		 List<Message> messages = responseQ.batchReceive();
 			      		     
 			     for (Message message : messages) {
-		            System.out.println("  Message");
+		            //System.out.println("  Message");
 	//		            System.out.println("    MessageId:     " + message.getMessageId());
 	//		            System.out.println("    ReceiptHandle: " + message.getReceiptHandle());
 	//		            System.out.println("    MD5OfBody:     " + message.getMD5OfBody());
-		            System.out.println("    Body:          " + message.getBody());
+		            //System.out.println("    Body:          " + message.getBody());
 		          
 		            //Get task
 		            String messageBody = message.getBody();		           

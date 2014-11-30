@@ -42,7 +42,7 @@ public class DynamoDBService {
 		try {
             // Create table if it does not exist yet
             if (Tables.doesTableExist(dynamoDB, TABLE_NAME)) {
-                System.out.println("Table " + TABLE_NAME + " is already ACTIVE");
+                //System.out.println("Table " + TABLE_NAME + " is already ACTIVE");
             } else {
                 // Create a table with a primary hash key named 'taskID', which holds a string
                 CreateTableRequest createTableRequest = new CreateTableRequest()
@@ -52,17 +52,17 @@ public class DynamoDBService {
                     .withProvisionedThroughput(new ProvisionedThroughput().withReadCapacityUnits(1L).withWriteCapacityUnits(1L));
                     
                 TableDescription tableDescription = dynamoDB.createTable(createTableRequest).getTableDescription();
-                System.out.println("Created Table: " + tableDescription);
+                //System.out.println("Created Table: " + tableDescription);
 
                 // Wait for it to become active
-                System.out.println("Waiting for " + TABLE_NAME + " to become ACTIVE...");
+                //System.out.println("Waiting for " + TABLE_NAME + " to become ACTIVE...");
                 Tables.waitForTableToBecomeActive(dynamoDB, TABLE_NAME);
             }
 
             // Describe our new table
-            DescribeTableRequest describeTableRequest = new DescribeTableRequest().withTableName(TABLE_NAME);
-            TableDescription tableDescription = dynamoDB.describeTable(describeTableRequest).getTable();
-            System.out.println("Table Description: " + tableDescription);
+//            DescribeTableRequest describeTableRequest = new DescribeTableRequest().withTableName(TABLE_NAME);
+//            TableDescription tableDescription = dynamoDB.describeTable(describeTableRequest).getTable();
+//            System.out.println("Table Description: " + tableDescription);
 		} catch (AmazonServiceException ase) {
             System.out.println("Caught an AmazonServiceException, which means your request made it "
                     + "to AWS, but was rejected with an error response for some reason.");

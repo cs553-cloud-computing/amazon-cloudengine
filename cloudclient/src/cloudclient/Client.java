@@ -33,6 +33,7 @@ public class Client {
 			PrintWriter out = new PrintWriter(outStream, true);									
 			BufferedReader bin = new BufferedReader(new InputStreamReader(inStream));
 			
+			System.out.println("Send tasks to server...");
 			//Start clock
 			long startTime = System.currentTimeMillis();
 			
@@ -44,9 +45,10 @@ public class Client {
 			batchReceiveResp(inStream);
 			
 			//End clock
-			long endTime   = System.currentTimeMillis();
+			long endTime = System.currentTimeMillis();
 			double totalTime = (endTime - startTime)/1e3;
 			
+			System.out.println("\nDone!");
 			System.out.println("Time to execution = "+totalTime+" sec.");
 			
 			// close the socket connection
@@ -67,7 +69,7 @@ public class Client {
 				
 		String ip = getIP();
         
-		System.out.println(ip);
+		//System.out.println(ip);
 		
 		//Json object Array		
 		JSONArray taskList = new JSONArray();  
@@ -81,7 +83,7 @@ public class Client {
 		try {
 			while ( (line = bin.readLine()) != null){
 				sleepLength = line.replaceAll("[^0-9]", "");
-				System.out.println(sleepLength);
+				//System.out.println(sleepLength);
 				id = ip + ":" + count;
 				count++;
 				
@@ -97,7 +99,7 @@ public class Client {
 				}
 			}
 			
-			System.out.println(taskList.toString());			
+			//System.out.println(taskList.toString());			
 			if(!taskList.isEmpty()){
 				out.println(taskList.toString());
 				taskList.clear();
@@ -136,7 +138,7 @@ public class Client {
 		
 		String message;
 		while((message = bin.readLine()) != null){
-			System.out.println(message);
+			//System.out.println(message);
 		
 			JSONArray responseList = (JSONArray)parser.parse(message);
 			
@@ -149,7 +151,6 @@ public class Client {
 		}
 		
 		bw.close();
-			
 		
 	}
 	

@@ -30,7 +30,10 @@ public class FrontEndScheduler {
 			System.exit(0);
 		}
 				
-		try(ServerSocket serverSocket = new ServerSocket(portNumber)) {			
+		try(ServerSocket serverSocket = new ServerSocket(portNumber)) {	
+			
+			System.out.println("Server start up!");
+			
 			/* listen for connections */
 			while (true) {
 				new ServerThread(serverSocket.accept(), workerType, poolSize).start();

@@ -49,7 +49,7 @@ public class SQSService {
 		sqs.setRegion(usEast1);
 		
 		// Create a queue or returns the URL of an existing one
-        System.out.println("Creating a new SQS queue called " + queueName);
+        //System.out.println("Creating a new SQS queue called " + queueName);
         CreateQueueRequest createQueueRequest = new CreateQueueRequest(queueName);
         queueUrl = sqs.createQueue(createQueueRequest).getQueueUrl();
                 
@@ -59,7 +59,7 @@ public class SQSService {
  
         try {        
         	// Send batch messages
-            System.out.println("\nSending a message to jobQueue.\n");
+            //System.out.println("\nSending a message to jobQueue.\n");
             
             SendMessageBatchRequest batchRequest = new SendMessageBatchRequest().withQueueUrl(queueUrl);		  	
 		  	batchRequest.setEntries(entries);
@@ -69,7 +69,7 @@ public class SQSService {
 		  	// sendMessageBatch can return successfully, and yet individual batch
 		  	// items fail. So, make sure to retry the failed ones.
 		  	if (!batchResult.getFailed().isEmpty()) {
-		    	System.out.println("Retrying sending messages...");		       
+		    	//System.out.println("Retrying sending messages...");		       
 		        	
 		    	sqs.sendMessageBatch(batchRequest);
 		  	}
