@@ -93,7 +93,9 @@ public class RemoteWorker {
         boolean terminate = false;
         boolean startClock = true;
         long start_time = 0,end_time;
-
+        
+        JSONParser parser=new JSONParser();
+        
         while(!terminate || idle_time == 0){       	
 	        while(getQueueSize(sqs, jobQueueUrl) > 0){	        
 	        	
@@ -112,9 +114,7 @@ public class RemoteWorker {
 		            System.out.println("    Body:          " + message.getBody());
 		          
 		            //Get task
-		            String messageBody = message.getBody();
-		            
-		            JSONParser parser=new JSONParser();
+		            String messageBody = message.getBody();		        		            
 		            JSONObject json = (JSONObject)parser.parse(messageBody);
 	                
 	                String task_id = json.get("task_id").toString();

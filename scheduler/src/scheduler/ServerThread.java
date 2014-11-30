@@ -1,3 +1,4 @@
+package scheduler;
 
 import java.net.*;
 import java.util.ArrayList;
@@ -7,6 +8,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.io.*;
+
+import localworker.LocalWorker;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -34,13 +37,13 @@ public class ServerThread extends Thread {
      
     public void run() {
  
-        try(       
+        try{       
             InputStream inStream = socket.getInputStream();
 			OutputStream outStream = socket.getOutputStream();
 			
 			PrintWriter out = new PrintWriter(outStream, true);
 			BufferedReader in = new BufferedReader(new InputStreamReader(inStream));
-		){
+		
 			if(workerType.equals("rw")){
 				jobQ = new SQSService("JobQueue");
 	        	//Set client ip as response queue name
@@ -110,7 +113,7 @@ public class ServerThread extends Thread {
         	JSONParser parser=new JSONParser();
         	
 			while ((message = in.readLine()) != null) {
-				out.println("Success!");
+				
 				JSONArray taskList = (JSONArray)parser.parse(message);
 				
 				for(int i=0; i< taskList.size(); i++){
@@ -120,8 +123,7 @@ public class ServerThread extends Thread {
 					entries.add(new SendMessageBatchRequestEntry()
 					.withId(Integer.toString(msg_cnt))
 					.withMessageBody(task.toString()));	
-					
-					
+						
 				}
 																
 			  	if(entries.size() == batchSize){
@@ -132,23 +134,29 @@ public class ServerThread extends Thread {
 			  	
 			}
 			
+			 if(!entries.isEmpty()){
+		        	jobQ.batchSend(entries);
+		        	entries.clear();
+		     }
+			
 		} catch (IOException e) {			
 			e.printStackTrace();
 		}
         
-        if(!entries.isEmpty()){
-        	jobQ.batchSend(entries);
-        	entries.clear();
-        }
+       
     }
     
-    public void remoteBatchReceive(PrintWriter out){
-    	while(msg_cnt != 0){ 
-	    	while(responseQ.getQueueSize() > 0){	 
+    @SuppressWarnings("unchecked")
+	public void remoteBatchReceive(PrintWriter out) throws ParseException{
+    	JSONArray responseList = new JSONArray();
+    	JSONParser parser=new JSONParser();
+    	    	
+    	while(msg_cnt > 0){ 
+	    	while(responseQ.getQueueSize() > 0){
+	    		//Get up to 10 messages
 	    		 List<Message> messages = responseQ.batchReceive();
-			     //out.println(messages.toString());  
-			     
-		        for (Message message : messages) {
+			      		     
+			     for (Message message : messages) {
 		            System.out.println("  Message");
 	//		            System.out.println("    MessageId:     " + message.getMessageId());
 	//		            System.out.println("    ReceiptHandle: " + message.getReceiptHandle());
@@ -156,14 +164,21 @@ public class ServerThread extends Thread {
 		            System.out.println("    Body:          " + message.getBody());
 		          
 		            //Get task
-		            String messageBody = message.getBody();
-			    msg_cnt--;
-			    // Delete the message
-                            String messageRecieptHandle = message.getReceiptHandle();
-                            responseQ.deleteMessage(messageRecieptHandle);
+		            String messageBody = message.getBody();		           
+		            JSONObject resp = (JSONObject)parser.parse(messageBody);
+		            responseList.add(resp);
+		            		            	            
+		            msg_cnt--;
+		            // Delete the message
+                    String messageRecieptHandle = message.getReceiptHandle();
+                    responseQ.deleteMessage(messageRecieptHandle);
 
 		        }
-	    	 }
+			     if(!responseList.isEmpty()){
+			    	 out.println(responseList.toString());
+			    	 responseList.clear();
+			     }
+	    	}
     	}
     	 
     }

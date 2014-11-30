@@ -5,6 +5,8 @@ import java.io.*;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import commandline.CommandLineInterface;
 
@@ -33,7 +35,8 @@ public class Client {
 									
 			//Batch sending tasks
 			batchSendTask(out, workload);
-					
+			client.shutdownOutput();
+			
 			//Batch receive responses
 			batchReceiveResp(inStream);
 			
@@ -84,7 +87,8 @@ public class Client {
 					taskList.clear();
 				}
 			}
-			System.out.println(taskList.toString());
+			
+			System.out.println(taskList.toString());			
 			if(!taskList.isEmpty()){
 				out.println(taskList.toString());
 				taskList.clear();
@@ -115,13 +119,28 @@ public class Client {
 		
 	}
 	
-	public static void batchReceiveResp(InputStream inStream) throws IOException{
-		String message;
+	public static void batchReceiveResp(InputStream inStream) throws IOException, ParseException{				
 		BufferedReader bin = new BufferedReader(new InputStreamReader(inStream));
+		BufferedWriter bw = new BufferedWriter(new FileWriter("result.txt"));
 		
+		JSONParser parser=new JSONParser();
+		
+		String message;
 		while((message = bin.readLine()) != null){
 			System.out.println(message);
+		
+			JSONArray responseList = (JSONArray)parser.parse(message);
+			
+			for(int i=0; i< responseList.size(); i++){
+				JSONObject response = (JSONObject)responseList.get(i);
+				bw.write(response.toString());
+				bw.newLine();
+			}
+			
 		}
+		
+		bw.close();
+			
 		
 	}
 	
