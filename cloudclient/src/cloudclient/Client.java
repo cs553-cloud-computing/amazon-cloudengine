@@ -32,13 +32,22 @@ public class Client {
 			
 			PrintWriter out = new PrintWriter(outStream, true);									
 			BufferedReader bin = new BufferedReader(new InputStreamReader(inStream));
-									
+			
+			//Start clock
+			long startTime = System.currentTimeMillis();
+			
 			//Batch sending tasks
 			batchSendTask(out, workload);
 			client.shutdownOutput();
 			
 			//Batch receive responses
 			batchReceiveResp(inStream);
+			
+			//End clock
+			long endTime   = System.currentTimeMillis();
+			double totalTime = (endTime - startTime)/1e3;
+			
+			System.out.println("Time to execution = "+totalTime+" sec.");
 			
 			// close the socket connection
 			client.close();
