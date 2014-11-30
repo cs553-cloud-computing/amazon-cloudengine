@@ -7,6 +7,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.io.*;
 
 import localworker.LocalWorker;
@@ -27,6 +28,8 @@ public class ServerThread extends Thread {
     private String workerType;
     private int poolSize;
     private int msg_cnt = 0;
+    BlockingQueue<String> localJobQ;
+    BlockingQueue<String> localRespQ;
 
     public ServerThread(Socket socket, String workerType, int poolSize ) {
         this.socket = socket;          
@@ -51,31 +54,34 @@ public class ServerThread extends Thread {
 	        	responseQ = new SQSService(resQName);
 	        	
 	        	//Send tasks
-				remoteBatchSend(in,out);
+				remoteBatchSend(in);
 				
 				//Get results
 				remoteBatchReceive(out);
 										
 			}else{			
+				localJobQ = new ArrayBlockingQueue<String>(1024*1024);
+				localRespQ = new ArrayBlockingQueue<String>(1024*1024);
 				//Local worker
-				localWorker(out, in);
+				localSend(in);
+				localReceive(out);
 			}
 			            
             socket.close();
             
         } catch (IOException | ParseException e) {
             e.printStackTrace();
-        } 
+        } catch (InterruptedException e) {			
+			e.printStackTrace();
+		} 
     }
     
-    public void localWorker(PrintWriter out, BufferedReader in) throws ParseException{
-    	BlockingQueue<String> jobQ = new ArrayBlockingQueue<String>(1024*1024);
-    	    	
-    	//Create thread pool for localworker
+    public void localSend(BufferedReader in) throws ParseException{
+    	//Create thread pool for localworkers
 		ExecutorService workerThreads = Executors.newFixedThreadPool(poolSize);
     		
 		for(int i = 0; i < poolSize; i++){
-			workerThreads.submit(new LocalWorker(jobQ));
+			workerThreads.submit(new LocalWorker(localJobQ, localRespQ));
 		}
 		
 		String message;
@@ -88,21 +94,52 @@ public class ServerThread extends Thread {
 				
 				for(int i=0; i< taskList.size(); i++){
 					JSONObject task = (JSONObject)taskList.get(i);
-					jobQ.put(task.toString());
+					localJobQ.put(task.toString());
+					msg_cnt++;
 				}
 			}
-		} catch (IOException | InterruptedException e) {
-			// TODO Auto-generated catch block
+		} catch (IOException | InterruptedException e) {			
 			e.printStackTrace();
 		}
     	
     	//Shutdown threads poll
-    	workerThreads.shutdown();
-		
-    
+//    	workerThreads.shutdown();
+		  
     }
     
-    public void remoteBatchSend(BufferedReader in,PrintWriter out) throws ParseException{
+    @SuppressWarnings("unchecked")
+	public void localReceive(PrintWriter out) throws InterruptedException, ParseException{
+    	JSONArray responseList = new JSONArray();
+    	JSONParser parser=new JSONParser();
+    	int batchSize = 10;
+    	
+    	while(msg_cnt > 0){ 
+	    	while(!localRespQ.isEmpty()){	    		
+	    		//waiting up to 100ms for an element to become available.
+	        	String messageBody = localRespQ.poll(100, TimeUnit.MILLISECONDS);
+           
+	            JSONObject resp = (JSONObject)parser.parse(messageBody);
+	            responseList.add(resp);
+	            		            	            
+	            msg_cnt--;
+	            
+	            if(responseList.size() == batchSize){
+	            	out.println(responseList.toString());
+			    	responseList.clear();
+	            }
+	            
+	    	}
+	    	
+		    if(!responseList.isEmpty()){
+		    	 out.println(responseList.toString());
+		    	 responseList.clear();
+		    }
+		    
+	    }
+    	   	
+    }
+    
+    public void remoteBatchSend(BufferedReader in) throws ParseException{
     	//Batch sending task to remote workers 
 		List<SendMessageBatchRequestEntry> entries = new ArrayList<SendMessageBatchRequestEntry>();
         String message;

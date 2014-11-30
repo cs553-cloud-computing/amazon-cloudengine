@@ -8,38 +8,55 @@ import org.json.simple.parser.JSONParser;
 
 public class LocalWorker implements Runnable{
 	BlockingQueue<String>  jobQ;
+	BlockingQueue<String> respQ;
 	
-	public LocalWorker(BlockingQueue<String> jobQ){
+	public LocalWorker(BlockingQueue<String> jobQ, BlockingQueue<String> respQ){
 		this.jobQ = jobQ;
+		this.respQ = respQ;
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public void run() {	
-        try {
-        	//Waiting for non-empty jobQ
-        	Thread.sleep(2000);
+		JSONParser parser=new JSONParser();
+		JSONObject json;
+		String task_id = null;
+		String task;
+		
+		try {
         	
-        	while(!jobQ.isEmpty()){
+        	while(true){
 	        	//waiting up to 100ms for an element to become available.
 	        	String messageBody = jobQ.poll(100, TimeUnit.MILLISECONDS);
 	        	
-	        	if(messageBody == null){
-	        		break;
+	        	if(messageBody != null){        	
+		        	
+		            json = (JSONObject)parser.parse(messageBody);
+		            
+		            task_id = json.get("task_id").toString();
+		            task = json.get("task").toString();
+		            
+		        	Thread.sleep(Long.parseLong(task));
+		        	
+		        	JSONObject result = new JSONObject();
+		        	result.put("task_id", task_id);
+		        	result.put("result", "0");
+		        	respQ.put(result.toString());
+		        	
+		        	System.out.println(Thread.currentThread().getName()+" sleep done!");
 	        	}
-	        	
-	        	JSONParser parser=new JSONParser();
-	            JSONObject json = (JSONObject)parser.parse(messageBody);
-	            
-	            //String task_id = json.get("task_id").toString();
-	            String task = json.get("task").toString();
-	            
-	        	Thread.sleep(Long.parseLong(task));
-	        	
-	        	System.out.println(Thread.currentThread().getName()+" sleep done!");
         	}
         	       	
         } catch (Exception e) {
-             System.out.println(e);
+        	JSONObject result = new JSONObject();
+        	result.put("task_id", task_id);
+        	result.put("result", "1");
+        	try {
+				respQ.put(result.toString());
+				
+			} catch (InterruptedException e1) {				
+				e1.printStackTrace();
+			}
         }
 	}
 	
