@@ -81,6 +81,7 @@ public class RemoteWorker {
 
 		//Create thread pool
 		ExecutorService threadPool = Executors.newFixedThreadPool(poolSize);
+		BlockingExecutor blockingPool = new BlockingExecutor(threadPool, poolSize);
 		
         //Get queue url
         GetQueueUrlResult urlResult = sqs.getQueueUrl("JobQueue");
@@ -123,8 +124,8 @@ public class RemoteWorker {
 		            try{
 			            dynamoDB.addTask(task_id,task);
 			            
-			            //Execute task
-			            threadPool.submit(new WorkerThread(task_id,task,sqs));
+			            //Execute task, will be blocked if no more thread is currently available 
+			            blockingPool.submitTask(new WorkerThread(task_id,task,sqs));
 			            	            
 			            // Delete the message
 			            String messageRecieptHandle = message.getReceiptHandle();
