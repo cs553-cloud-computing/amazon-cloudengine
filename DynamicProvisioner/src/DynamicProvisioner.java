@@ -126,17 +126,19 @@ public class DynamicProvisioner {
 		int taskNum;
 		int lastTaskNum=0;
 		int diff;
+		int remainAllow=0;
 		boolean resetStrategyCounter=false;
 		//The strategy
 		while(true) {
 			assert(minWorkerNum<=maxWorkerNum);
 			workerNum=ec2.getInstanceNumWithTag(workerTag);
 			taskNum=sqs.getApproximateQueueSize();
+			remainAllow=maxWorkerNum-workerNum;
 			if(workerNum<minWorkerNum) {
 				launchAndWaitUntilRunning(ec2,minWorkerNum-workerNum,price);
 				resetStrategyCounter=true;
 			}
-			else if(workerNum>=maxWorkerNum || sqs.getApproximateQueueSize()==0) {
+			else if(remainAllow<=0 || taskNum==0) {
 				
 			}
 			else if(workerNum==0) {
@@ -151,15 +153,19 @@ public class DynamicProvisioner {
 					increaseTimes++;
 				absoluteTaskIncrease+=diff;
 				if(taskNum>(int)(Math.sqrt(workerNum)*1000)) {
-					launchAndWaitUntilRunning(ec2,1,price);
+					launchAndWaitUntilRunning(ec2,Math.min(remainAllow,1+Math.max(0,(int)Math.log10(taskNum/workerNum))),price);
+					resetStrategyCounter=true;
+				}
+				else if(diff>0 && diff*1.0/taskNum*Math.log10(taskNum/10.0)>0.1) {
+					launchAndWaitUntilRunning(ec2,Math.min(remainAllow,1+Math.min(10,(int)(0.5+10.0*diff*1.0/taskNum*Math.log10(taskNum/10.0)))),price);
 					resetStrategyCounter=true;
 				}
 				else if(increaseTimes>3 || absoluteTaskIncrease>1000) {
-					launchAndWaitUntilRunning(ec2,1+(int)Math.log10(absoluteTaskIncrease/1000),price);
+					launchAndWaitUntilRunning(ec2,Math.min(remainAllow,1+Math.max(0,(int)Math.log10(absoluteTaskIncrease/1000.0))),price);
 					resetStrategyCounter=true;
 				}
-				absoluteTaskIncrease = absoluteTaskIncrease>0 ? absoluteTaskIncrease : 0;
-				increaseTimes = increaseTimes>0 ? increaseTimes : 0;
+				absoluteTaskIncrease = Math.max(absoluteTaskIncrease, 0);
+				increaseTimes = Math.max(increaseTimes, 0);
 			}
 			
 			if(resetStrategyCounter) {
