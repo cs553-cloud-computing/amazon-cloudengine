@@ -30,6 +30,7 @@ public class DynamicProvisioner {
 	static final String workerAMI = "ami-7ee07916";
 	static final String instanceType = "c3.large";
 	static final String queue = "ForTest";
+	static final String keyName = "cloudstack-key";
 	static final String credentialProfileName = "default";
 	static final String[] securityGroups = new String[]{"default"};
 	static final Tag workerTag = new Tag("CS553P4","remoteWorker");
@@ -43,8 +44,8 @@ public class DynamicProvisioner {
 	static final String userData= "#!/bin/sh\n"
 								+ "mkdir -p /root/.aws\n"
 								+ "cp /home/ubuntu/.aws/credentials /root/.aws/\n"
-								+ "touch /home/ubuntu/lalaOleiO_+=.lalaOleiO\n"
-								+ "touch /home/ubuntu/lalaOleiO2_+=.lalaOleiO\n"
+//								+ "touch /home/ubuntu/lalaOleiO_+=.lalaOleiO\n"
+//								+ "touch /home/ubuntu/lalaOleiO2_+=.lalaOleiO\n"
 //								+ "cd /home/ubuntu\n"
 //								+ "java Test &\n"
 //								+ "java Test \n";
@@ -62,7 +63,7 @@ public class DynamicProvisioner {
 		List<String> instanceIDs=null;
 		boolean ifContinue=true;
 		while(ifContinue) {
-			spotInstanceRequestIds=ec2.launch(workerAMI, instanceType, num, price, sgs, userData, charset);
+			spotInstanceRequestIds=ec2.launch(workerAMI, instanceType, num, price, sgs, keyName, userData, charset);
 			long rTime=System.currentTimeMillis();
 			while(instanceIDs==null) {
 				if(System.currentTimeMillis()-rTime>newSpotInstanceRequestTolerateTime)
@@ -128,6 +129,7 @@ public class DynamicProvisioner {
 		int diff;
 		int remainAllow=0;
 		boolean resetStrategyCounter=false;
+		
 		//The strategy
 		while(true) {
 			assert(minWorkerNum<=maxWorkerNum);

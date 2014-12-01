@@ -35,7 +35,7 @@ public class EC2 {
 	}
 
 	public List<String> launch(String workerAMI, String instanceType, int num,
-			double price, List<String> securityGroups, String userData, String charset) throws UnsupportedEncodingException {
+			double price, List<String> securityGroups, String keyName, String userData, String charset) throws UnsupportedEncodingException {
 		RequestSpotInstancesRequest requestRequest = new RequestSpotInstancesRequest();
 		requestRequest.setSpotPrice(Double.toString(price));
 		requestRequest.setInstanceCount(Integer.valueOf(num));
@@ -45,7 +45,7 @@ public class EC2 {
 		launchSpecification.setInstanceType(instanceType);
 		launchSpecification.setSecurityGroups(securityGroups);
 		launchSpecification.setUserData(new String(Base64.encode(userData.getBytes(charset))));
-		launchSpecification.setKeyName("cloudstack-key"); //for test
+		launchSpecification.setKeyName(keyName); //for test
 		
 		requestRequest.setLaunchSpecification(launchSpecification);
 		RequestSpotInstancesResult requestResult = ec2
