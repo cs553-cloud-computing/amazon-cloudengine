@@ -49,7 +49,7 @@ public class DynamoDBService {
                 	.withTableName(TABLE_NAME)
                     .withKeySchema(new KeySchemaElement().withAttributeName("taskID").withKeyType(KeyType.HASH))
                     .withAttributeDefinitions(new AttributeDefinition().withAttributeName("taskID").withAttributeType(ScalarAttributeType.S))
-                    .withProvisionedThroughput(new ProvisionedThroughput().withReadCapacityUnits(1L).withWriteCapacityUnits(1L));
+                    .withProvisionedThroughput(new ProvisionedThroughput().withReadCapacityUnits(1000L).withWriteCapacityUnits(1000L));
                     
                 TableDescription tableDescription = dynamoDB.createTable(createTableRequest).getTableDescription();
                 //System.out.println("Created Table: " + tableDescription);
