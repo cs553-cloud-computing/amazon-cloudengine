@@ -118,7 +118,7 @@ public class DynamicProvisioner {
 		EC2 ec2 = new EC2(credentials,region);
 		double price=0.5;
 		
-		launchAndWaitUntilRunning(ec2,1,price);
+//		launchAndWaitUntilRunning(ec2,1,price); // for test
 		int peekTaskNum=0;
 		int increaseTimes=0;
 		int absoluteTaskIncrease=0;
