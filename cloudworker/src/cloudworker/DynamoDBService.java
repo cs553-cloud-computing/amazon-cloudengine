@@ -1,3 +1,16 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License"); 
+ * you may not use this file except in compliance with the License. 
+ * You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, 
+ * software distributed under the License is distributed on an "AS IS" BASIS, 
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+ * See the License for the specific language governing permissions and limitations under the License.
+ */
+
 package cloudworker;
 
 import java.util.HashMap;
@@ -49,7 +62,7 @@ public class DynamoDBService {
                 	.withTableName(TABLE_NAME)
                     .withKeySchema(new KeySchemaElement().withAttributeName("taskID").withKeyType(KeyType.HASH))
                     .withAttributeDefinitions(new AttributeDefinition().withAttributeName("taskID").withAttributeType(ScalarAttributeType.S))
-                    .withProvisionedThroughput(new ProvisionedThroughput().withReadCapacityUnits(1000L).withWriteCapacityUnits(1000L));
+                    .withProvisionedThroughput(new ProvisionedThroughput().withReadCapacityUnits(1L).withWriteCapacityUnits(1L));
                     
                 TableDescription tableDescription = dynamoDB.createTable(createTableRequest).getTableDescription();
                 //System.out.println("Created Table: " + tableDescription);
