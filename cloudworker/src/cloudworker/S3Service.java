@@ -5,6 +5,7 @@ import java.net.URL;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
+import com.amazonaws.HttpMethod;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.regions.Region;
@@ -66,7 +67,19 @@ public class S3Service {
 			System.out.println("Uploading a new object to S3 from a file\n");
             s3.putObject(new PutObjectRequest(bucketName, key, movie));
             
-            return s3.generatePresignedUrl(new GeneratePresignedUrlRequest(bucketName,key));
+            System.out.println("Generating pre-signed URL.");
+			java.util.Date expiration = new java.util.Date();
+			long milliSeconds = expiration.getTime();
+			milliSeconds += 1000 * 60 * 60; // Add 1 hour.
+			expiration.setTime(milliSeconds);
+
+			GeneratePresignedUrlRequest generatePresignedUrlRequest = 
+				    new GeneratePresignedUrlRequest(bucketName, key);
+			generatePresignedUrlRequest.setMethod(HttpMethod.GET); 
+			generatePresignedUrlRequest.setExpiration(expiration);
+
+			return s3.generatePresignedUrl(generatePresignedUrlRequest); 
+            
             
 		}catch (AmazonServiceException ase) {
             System.out.println("Caught an AmazonServiceException, which means your request made it "

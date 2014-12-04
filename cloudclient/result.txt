@@ -1,5 +1,1 @@
-{"URL":"https:\/\/cs553-p4-bucket.s3.amazonaws.com\/50-178-190-58?AWSAccessKeyId=AKIAILO3FVWM4SFCS6DQ&Expires=1417689037&Signature=E6WgQm320jJufCpSQQT%2FoEuI4V8%3D"}
-{"URL":"https:\/\/cs553-p4-bucket.s3.amazonaws.com\/50-178-190-58?AWSAccessKeyId=AKIAILO3FVWM4SFCS6DQ&Expires=1417689041&Signature=qiToeIo048dkpxx6N2BpoHCa46k%3D"}
-{"URL":"https:\/\/cs553-p4-bucket.s3.amazonaws.com\/50-178-190-58?AWSAccessKeyId=AKIAILO3FVWM4SFCS6DQ&Expires=1417689042&Signature=yFWxNHSZF1218V0A2tFJEGck%2BWs%3D"}
-{"URL":"https:\/\/cs553-p4-bucket.s3.amazonaws.com\/50-178-190-58?AWSAccessKeyId=AKIAILO3FVWM4SFCS6DQ&Expires=1417689043&Signature=%2BdVW4nP3X8MqN8OQVnseGPpG3Uc%3D"}
-{"URL":"https:\/\/cs553-p4-bucket.s3.amazonaws.com\/50-178-190-58?AWSAccessKeyId=AKIAILO3FVWM4SFCS6DQ&Expires=1417689044&Signature=cyHDrZWAYCceebUybEhJxNXDoY4%3D"}
+https://cs553-p4-bucket.s3.amazonaws.com/movie.mpg?AWSAccessKeyId=AKIAILO3FVWM4SFCS6DQ&Expires=1417720988&Signature=hGjlKfvuN30NmC8dejJvZPLZeIU%3D

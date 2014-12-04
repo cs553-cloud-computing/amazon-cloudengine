@@ -157,7 +157,7 @@ public class Client {
 			
 			for(int i=0; i< responseList.size(); i++){
 				JSONObject response = (JSONObject)responseList.get(i);
-				bw.write(response.toString());
+				bw.write(response.get("URL").toString());
 				bw.newLine();
 			}
 			

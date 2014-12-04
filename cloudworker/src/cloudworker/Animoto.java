@@ -33,10 +33,10 @@ public class Animoto {
 	String task_id;
 	BlockingQueue<String> urls;
 	
-	Animoto(String task_id, BlockingQueue<String> urls,AmazonSQS sqs){
+	Animoto(String task_id,AmazonSQS sqs){
 		this.task_id = task_id;
 		this.responseQName = task_id.split(":")[0].replaceAll("[^0-9]", "-");
-		this.urls = urls;
+		//this.urls = urls;
 		this.sqs = sqs;
 			
 		//System.out.println(responseQName);
@@ -52,10 +52,10 @@ public class Animoto {
         Runtime runtime = Runtime.getRuntime();
         
         try {
-        	while(!urls.isEmpty()){
+        	/*while(!urls.isEmpty()){
         		Process p = runtime.exec("wget "+ urls.take());
         		p.waitFor();
-        	}
+        	}*/
         	
 			Process rename = runtime.exec("./rename.sh");
 			rename.waitFor();
@@ -65,7 +65,7 @@ public class Animoto {
 			File movie = new File("movie.mpg");
 			
 			S3Service s3 = new S3Service();
-			URL url = s3.put(responseQName, movie);
+			URL url = s3.put(movie.getName(), movie);
 			        	
         	//result.put("task_id", task_id);
         	result.put("URL", url.toString());
