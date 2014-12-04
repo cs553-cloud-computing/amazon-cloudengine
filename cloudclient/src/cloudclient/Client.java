@@ -95,14 +95,14 @@ public class Client {
  		int batchSize = 10;
 		try {
 			while ( (line = bin.readLine()) != null){
-				sleepLength = line.replaceAll("[^0-9]", "");
+				//sleepLength = line.replaceAll("[^0-9]", "");
 				//System.out.println(sleepLength);
 				count++;
 				id = ip + ":" + count;
 				
 				JSONObject task = new JSONObject();
 				task.put("task_id", id);
-				task.put("task", sleepLength);
+				task.put("task", line);
 				
 				taskList.add(task);
 				

@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -47,6 +49,7 @@ import com.amazonaws.services.sqs.model.GetQueueAttributesRequest;
 import com.amazonaws.services.sqs.model.GetQueueUrlResult;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
+
 import commandline.CommandLineInterface;
 
 
@@ -110,6 +113,8 @@ public class RemoteWorker {
         long start_time = 0,end_time;
         
         JSONParser parser=new JSONParser();
+        BlockingQueue<String> urls = new ArrayBlockingQueue<String>(1024*1024);
+        String task_id = null;
         
         while(!terminate || idle_time == 0){       	
 	        while(getQueueSize(sqs, jobQueueUrl) > 0){	        
@@ -132,15 +137,15 @@ public class RemoteWorker {
 		            String messageBody = message.getBody();		        		            
 		            JSONObject json = (JSONObject)parser.parse(messageBody);
 	                
-	                String task_id = json.get("task_id").toString();
+	                task_id = json.get("task_id").toString();
 	                String task = json.get("task").toString();
 	                
 		            try{
+		            	//Check duplicate task
 			            dynamoDB.addTask(task_id,task);
-			            
-			            //Execute task, will be blocked if no more thread is currently available 
-			            blockingPool.submitTask(new WorkerThread(task_id,task,sqs));
-			            	            
+			            		            
+			            urls.put(task);
+			            			 		            	            
 			            // Delete the message
 			            String messageRecieptHandle = message.getReceiptHandle();
 			            sqs.deleteMessage(new DeleteMessageRequest(jobQueueUrl, messageRecieptHandle));
@@ -152,6 +157,9 @@ public class RemoteWorker {
 		        
 		        startClock = true;
 	        }
+	      
+	        Animoto animoto = new Animoto(task_id,urls,sqs);
+	        animoto.start();
 	        
 	        //Start clock to measure idle time
 	        if(startClock){
