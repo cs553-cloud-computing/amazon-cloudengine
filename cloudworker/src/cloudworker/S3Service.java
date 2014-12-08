@@ -70,7 +70,7 @@ public class S3Service {
             System.out.println("Generating pre-signed URL.");
 			java.util.Date expiration = new java.util.Date();
 			long milliSeconds = expiration.getTime();
-			milliSeconds += 1000 * 60 * 60; // Add 1 hour.
+			milliSeconds += 1000 * 60 * 60 * 24 * 7; // Add 7 days.
 			expiration.setTime(milliSeconds);
 
 			GeneratePresignedUrlRequest generatePresignedUrlRequest = 

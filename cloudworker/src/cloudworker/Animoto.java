@@ -27,35 +27,37 @@ import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.GetQueueUrlResult;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 
-public class Animoto {
+public class Animoto implements Runnable {
 	AmazonSQS sqs;
 	String responseQName;
 	String task_id;
-	BlockingQueue<String> urls;
+	String task;
 	
-	Animoto(String task_id,AmazonSQS sqs){
+	Animoto(String task_id, String task, AmazonSQS sqs){
 		this.task_id = task_id;
+		this.task = task;
 		this.responseQName = task_id.split(":")[0].replaceAll("[^0-9]", "-");
-		//this.urls = urls;
 		this.sqs = sqs;
 			
-		//System.out.println(responseQName);
 	}
 	
-	@SuppressWarnings({ "unchecked", "static-access" })	
-	public void start() {	
+	@SuppressWarnings("unchecked")
+	public void run() {	
 		//Get queue url	
-        GetQueueUrlResult urlResult = sqs.getQueueUrl("127-0-0-1");
+        GetQueueUrlResult urlResult = sqs.getQueueUrl(responseQName);
         String QueueUrl = urlResult.getQueueUrl();
         JSONObject result = new JSONObject();
         
         Runtime runtime = Runtime.getRuntime();
         
         try {
-        	/*while(!urls.isEmpty()){
-        		Process p = runtime.exec("wget "+ urls.take());
+        	String[] urls = task.split(" ");
+        	
+        	for(String url : urls){
+        		//System.out.println(url);
+        		Process p = runtime.exec("wget "+ url);
         		p.waitFor();
-        	}*/
+        	}
         	
 			Process rename = runtime.exec("./rename.sh");
 			rename.waitFor();

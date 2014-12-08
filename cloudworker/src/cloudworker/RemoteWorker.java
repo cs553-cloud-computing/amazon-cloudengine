@@ -114,7 +114,6 @@ public class RemoteWorker {
         
         JSONParser parser=new JSONParser();
         Runtime runtime = Runtime.getRuntime();
-       // BlockingQueue<String> urls = new ArrayBlockingQueue<String>(1024*1024);
         String task_id = null;
         boolean runAnimoto = false;
         
@@ -146,12 +145,9 @@ public class RemoteWorker {
 		            try{
 		            	//Check duplicate task
 			            dynamoDB.addTask(task_id,task);
-			            
-			            Process p = runtime.exec("wget "+ task);
-		        		p.waitFor();
-		        		
-		        		runAnimoto = true;
-			            //urls.put(task);
+			            			     
+		        		//Execute task, will be blocked if no more thread is currently available 
+			            blockingPool.submitTask(new Animoto(task_id,task,sqs));
 			            			 		            	            
 			            // Delete the message
 			            String messageRecieptHandle = message.getReceiptHandle();
@@ -164,13 +160,6 @@ public class RemoteWorker {
 		        
 		        startClock = true;
 		        
-	        }
-	        
-	        if(runAnimoto){
-	        	Animoto animoto = new Animoto(task_id,sqs);
-	        	animoto.start();
-	        	
-	        	runAnimoto = false;
 	        }
 	        
 	        //Start clock to measure idle time

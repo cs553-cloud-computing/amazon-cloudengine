@@ -218,7 +218,7 @@ public class ServerThread extends Thread {
 		            JSONObject resp = (JSONObject)parser.parse(messageBody);
 		            responseList.add(resp);
 		            		            	            
-		            msg_cnt = 0;
+		            msg_cnt--;
 		            // Delete the message
                     String messageRecieptHandle = message.getReceiptHandle();
                     responseQ.deleteMessage(messageRecieptHandle);

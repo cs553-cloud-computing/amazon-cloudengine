@@ -1,1 +1,1 @@
-https://cs553-p4-bucket.s3.amazonaws.com/movie.mpg?AWSAccessKeyId=AKIAILO3FVWM4SFCS6DQ&Expires=1417720988&Signature=hGjlKfvuN30NmC8dejJvZPLZeIU%3D
+https://cs553-p4-bucket.s3.amazonaws.com/movie.mpg?AWSAccessKeyId=AKIAILO3FVWM4SFCS6DQ&Expires=1418626205&Signature=nEPIm4xYnc4VtNjRgjoxH2de8lw%3D
