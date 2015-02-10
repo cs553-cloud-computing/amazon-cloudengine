@@ -13,10 +13,10 @@
 
 package scheduler;
 
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 import com.amazonaws.AmazonClientException;
@@ -82,8 +82,18 @@ public class SQSService {
 		  	// sendMessageBatch can return successfully, and yet individual batch
 		  	// items fail. So, make sure to retry the failed ones.
 		  	if (!batchResult.getFailed().isEmpty()) {
-		    	//System.out.println("Retrying sending messages...");		       
-		        	
+		    	//System.out.println("Retry sending failed messages...");
+		  		
+		  		List<SendMessageBatchRequestEntry> failedEntries = new ArrayList<SendMessageBatchRequestEntry>();
+		        Iterator<SendMessageBatchRequestEntry> iter = entries.iterator();
+		        
+		        while(iter.hasNext()){
+		        	if(batchResult.getFailed().contains(iter.next())){
+		        		failedEntries.add((SendMessageBatchRequestEntry) iter.next());
+		        	}
+		        }	
+		        
+			  	batchRequest.setEntries(failedEntries);
 		    	sqs.sendMessageBatch(batchRequest);
 		  	}
             

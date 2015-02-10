@@ -35,52 +35,54 @@ import com.amazonaws.services.sqs.model.SendMessageBatchRequestEntry;
 
 
 public class ServerThread extends Thread {
-    private Socket socket = null;
+    private Socket server = null;
     private SQSService jobQ;
-    private SQSService responseQ;
+    private SQSService resQ;
     private String workerType;
     private int poolSize;
     private int msg_cnt = 0;
     BlockingQueue<String> localJobQ;
     BlockingQueue<String> localRespQ;
 
-    public ServerThread(Socket socket, String workerType, int poolSize ) {
-        this.socket = socket;          
+    public ServerThread(Socket server, String workerType, int poolSize ) {
+        this.server = server;          
         this.workerType = workerType;
         this.poolSize = poolSize;
         
     }
      
-    public void run() {
+    @SuppressWarnings("unchecked")
+	public void run() {
  
         try{       
-            InputStream inStream = socket.getInputStream();
-			OutputStream outStream = socket.getOutputStream();
+            InputStream inStream = server.getInputStream();
+			OutputStream outStream = server.getOutputStream();
 			
 			PrintWriter out = new PrintWriter(outStream, true);
 			BufferedReader in = new BufferedReader(new InputStreamReader(inStream));
 		
 			if(workerType.equals("rw")){
 				jobQ = new SQSService("JobQueue");
-	        	//Set client ip as response queue name
-	        	String resQName = socket.getInetAddress().toString().substring(1).replaceAll("[^0-9]", "-");
-	        	responseQ = new SQSService(resQName);
-	        	
+	        	//Use client ip as the name of the response queue
+	        	String resQName = server.getInetAddress().toString().substring(1).replaceAll("[^0-9]", "-");
+	        	resQ = new SQSService(resQName);
+	        		        		        	
 	        	//Send tasks
 				remoteBatchSend(in);
 				
 				//Get results
 				remoteBatchReceive(out);
-										
+				
 			}else{			
 				localJobQ = new ArrayBlockingQueue<String>(1024*1024);
 				localRespQ = new ArrayBlockingQueue<String>(1024*1024);
 				//Local worker
 				localSend(in);
 				localReceive(out);
+				
 			}
 			            
-            socket.close();
+            server.close();
             
         } catch (IOException | ParseException e) {
             e.printStackTrace();
@@ -156,9 +158,8 @@ public class ServerThread extends Thread {
     	//Batch sending task to remote workers 
 		List<SendMessageBatchRequestEntry> entries = new ArrayList<SendMessageBatchRequestEntry>();
         String message;
-        int batchSize = 10; 
+        final int batchSize = 10; 
         
-
         try {
         	JSONParser parser=new JSONParser();
         	
@@ -180,8 +181,7 @@ public class ServerThread extends Thread {
 			  		jobQ.batchSend(entries);
 			    	entries.clear();		    	
 			    }
-			  	
-			  	
+			  				  	
 			}
 			
 			 if(!entries.isEmpty()){
@@ -193,7 +193,6 @@ public class ServerThread extends Thread {
 			e.printStackTrace();
 		}
         
-       
     }
     
     @SuppressWarnings("unchecked")
@@ -202,16 +201,16 @@ public class ServerThread extends Thread {
     	JSONParser parser=new JSONParser();
     	    	
     	while(msg_cnt > 0){ 
-	    	while(responseQ.getQueueSize() > 0){
+	    	while(resQ.getQueueSize() > 0){
 	    		//Get up to 10 messages
-	    		 List<Message> messages = responseQ.batchReceive();
+	    		 List<Message> messages = resQ.batchReceive();
 			      		     
 			     for (Message message : messages) {
-		            //System.out.println("  Message");
-	//		            System.out.println("    MessageId:     " + message.getMessageId());
-	//		            System.out.println("    ReceiptHandle: " + message.getReceiptHandle());
-	//		            System.out.println("    MD5OfBody:     " + message.getMD5OfBody());
-		            //System.out.println("    Body:          " + message.getBody());
+//			    	 System.out.println("  Message");
+//			         System.out.println("    MessageId:     " + message.getMessageId());
+//			         System.out.println("    ReceiptHandle: " + message.getReceiptHandle());
+//			         System.out.println("    MD5OfBody:     " + message.getMD5OfBody());
+//			         System.out.println("    Body:          " + message.getBody());
 		          
 		            //Get task
 		            String messageBody = message.getBody();		           
@@ -221,16 +220,16 @@ public class ServerThread extends Thread {
 		            msg_cnt--;
 		            // Delete the message
                     String messageRecieptHandle = message.getReceiptHandle();
-                    responseQ.deleteMessage(messageRecieptHandle);
+                    resQ.deleteMessage(messageRecieptHandle);
 
 		        }
-			     if(!responseList.isEmpty()){
+			    if(!responseList.isEmpty()){
 			    	 out.println(responseList.toString());
 			    	 responseList.clear();
-			     }
+			    }
+			    
 	    	}
-    	}
-    	 
+    	}  	 
     }
      
 }

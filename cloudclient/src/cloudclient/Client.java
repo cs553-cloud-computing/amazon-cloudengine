@@ -25,37 +25,35 @@ import commandline.CommandLineInterface;
 
 
 public class Client {
-	
-	public static void main(String[] args) throws Exception {
 		
+	public static void main(String[] args) throws Exception {		
 		//Command interpreter
 		CommandLineInterface cmd = new CommandLineInterface(args);
 		
 		String socket = cmd.getOptionValue("s");
-		String Host_Addr = socket.split(":")[0];
-		int Port = Integer.parseInt(socket.split(":")[1]);
-				
+		String Host_IP = socket.split(":")[0];
+		int Port = Integer.parseInt(socket.split(":")[1]);				
 		String workload = cmd.getOptionValue("w");
 		
 		try {
 			// make connection to server socket 
-			Socket client = new Socket(Host_Addr, Port);
+			Socket client = new Socket(Host_IP, Port);
+			
 			InputStream inStream = client.getInputStream();
 			OutputStream outStream = client.getOutputStream();
-			
 			PrintWriter out = new PrintWriter(outStream, true);									
-			BufferedReader bin = new BufferedReader(new InputStreamReader(inStream));
+			BufferedReader in = new BufferedReader(new InputStreamReader(inStream));
 			
 			System.out.println("Send tasks to server...");
 			//Start clock
 			long startTime = System.currentTimeMillis();
-			
+						
 			//Batch sending tasks
 			batchSendTask(out, workload);
 			client.shutdownOutput();
 			
 			//Batch receive responses
-			batchReceiveResp(inStream);
+			batchReceiveResp(in);
 			
 			//End clock
 			long endTime = System.currentTimeMillis();
@@ -73,27 +71,46 @@ public class Client {
             
 	}
 	
+	public static String getIP() throws MalformedURLException{		
+		//Get external ip of the client				     
+    	String ip = null;
+    	
+    	URL whatismyip = new URL("http://checkip.amazonaws.com");
+		try {
+			BufferedReader in_ip = new BufferedReader(new InputStreamReader(
+			        whatismyip.openStream()));
+			ip = in_ip.readLine();
+			
+		} catch (IOException e1) {			
+			e1.printStackTrace();
+		}
+		
+		return ip;
+		
+	}
+	
 	@SuppressWarnings("unchecked")
 	public static void batchSendTask(PrintWriter out, String workload) 
 			throws FileNotFoundException, MalformedURLException {
 		
 		FileInputStream input = new FileInputStream(workload);
 		BufferedReader bin = new BufferedReader(new InputStreamReader(input));
-				
-		String ip = getIP();
-        
-		//System.out.println(ip);
-		
-		//Json object Array		
-		JSONArray taskList = new JSONArray();  
-		
+						
         // Get task from workload file 
  		String line;
- 		String sleepLength;
+// 		String sleepLength;
  		String id;
  		int count=0;
- 		int batchSize = 10;
+ 		final int batchSize = 10;
+ 		
 		try {
+			//Get client public IP
+			String ip = getIP();        
+			//System.out.println(ip);
+			
+			//JSON object Array		
+			JSONArray taskList = new JSONArray();  
+			
 			while ( (line = bin.readLine()) != null){
 				//sleepLength = line.replaceAll("[^0-9]", "");
 				//System.out.println(sleepLength);
@@ -124,43 +141,21 @@ public class Client {
 		}
 	}
 	
-	public static String getIP() throws MalformedURLException{
-		
-		//Get external ip of the client				     
-    	String ip = null;
-    	
-    	URL whatismyip = new URL("http://checkip.amazonaws.com");
-		try {
-			BufferedReader in_ip = new BufferedReader(new InputStreamReader(
-			        whatismyip.openStream()));
-			ip = in_ip.readLine();
-			
-		} catch (IOException e1) {			
-			e1.printStackTrace();
-		}
-		
-		return ip;
-		
-	}
-	
-	public static void batchReceiveResp(InputStream inStream) throws IOException, ParseException{				
-		BufferedReader bin = new BufferedReader(new InputStreamReader(inStream));
+	public static void batchReceiveResp(BufferedReader in) throws IOException, ParseException{
 		BufferedWriter bw = new BufferedWriter(new FileWriter("result.txt"));
 		
 		JSONParser parser=new JSONParser();
 		
 		String message;
-		while((message = bin.readLine()) != null){
+		while((message = in.readLine()) != null){
 			//System.out.println(message);
-		
 			JSONArray responseList = (JSONArray)parser.parse(message);
 			
 			for(int i=0; i< responseList.size(); i++){
 				JSONObject response = (JSONObject)responseList.get(i);
 				bw.write(response.get("URL").toString());
 				bw.newLine();
-			}
-			
+			}		
 		}
 		
 		bw.close();
